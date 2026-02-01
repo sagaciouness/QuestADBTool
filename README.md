@@ -1,4 +1,5 @@
 # Quest 安装与输入工具（WPF / .NET 8）
+#本软件含AI编写内容
 
 这是一个将以下操作封装为 Windows 图形界面的工具：
 - 安装 APK（`adb install -r`）
