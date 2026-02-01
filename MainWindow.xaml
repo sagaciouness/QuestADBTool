@@ -1,0 +1,102 @@
+<Window x:Class="QuestADBTool.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Quest 安装与输入工具" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Bg}" TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType" UseLayoutRounding="True" SnapsToDevicePixels="True">
+
+    
+
+    <Grid UseLayoutRounding="True" SnapsToDevicePixels="True" Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部状态 -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorder}">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse x:Name="StatusDot" Width="10" Height="10" Fill="#9CA3AF" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="设备状态" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <TextBlock x:Name="StatusText" Text="正在检测..." Foreground="{StaticResource TextDim}" Margin="0,6,0,0"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="重新检测" Margin="10,0,0,0" Click="Refresh_Click" Style="{DynamicResource FluentButton}" x:Name="RefreshButton" />
+                    <Button Content="新手引导" Margin="10,0,0,0" Click="Guide_Click" ToolTip="打开新手使用说明（随时可查看）" Style="{DynamicResource FluentButton}" x:Name="GuideButton" />
+                    <Button Content="修复连接" Margin="10,0,0,0" Click="RestartAdb_Click" Style="{DynamicResource FluentButton}" x:Name="RestartButton" />
+                    <Button Content="打开问题日志" Margin="10,0,0,0" Click="OpenLog_Click" Style="{DynamicResource FluentButton}" x:Name="OpenLogButton" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <TextBlock x:Name="BusyText" Text="" Foreground="{DynamicResource TextDim}"
+                   HorizontalAlignment="Right" Margin="0,8,0,0" Visibility="Collapsed"/>
+
+        <!-- 安装APK -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+            <StackPanel>
+                <TextBlock Text="安装应用到 Quest" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock Text="选择 .apk 文件后点击“安装应用”" Foreground="{StaticResource TextDim}" Margin="0,6,0,12"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="ApkPathBox" Height="36" VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="1" Content="选择..." Margin="10,0,0,0" Click="PickApk_Click" Style="{DynamicResource FluentButton}" x:Name="PickApkButton" />
+                    <Button x:Name="InstallApkButton" Grid.Column="2" Content="安装应用" Margin="10,0,0,0" Click="InstallApk_Click" Style="{DynamicResource PrimaryButton}"/>
+                </Grid>
+
+                <TextBlock Text="提示：若显示“需要授权”，请戴上头显并点击“允许 USB 调试”。" Foreground="{StaticResource TextDim}" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 输入文字 -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+            <StackPanel>
+                <TextBlock Text="向头显输入文字" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock Text="发送到 Quest 当前聚焦的输入框" Foreground="{StaticResource TextDim}" Margin="0,6,0,12"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox x:Name="InputTextBox" Height="36" VerticalContentAlignment="Center" ToolTip="空格会自动处理，直接输入即可。"/>
+                    <Button x:Name="SendTextButton" Grid.Column="1" Content="发送到头显" Margin="10,0,0,0" Click="SendText_Click" Style="{DynamicResource PrimaryButton}"/>
+                </Grid>
+
+                <TextBlock Text="示例：Hello Quest（空格会自动处理）。尽量避免很长或复杂符号。" Foreground="{StaticResource TextDim}" Margin="0,10,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 日志 -->
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}" Margin="0,14,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Stretch">
+                    <TextBlock Text="日志" FontSize="14" FontWeight="SemiBold"/>
+                    <TextBlock Text="   出现问题时，请点击“打开问题日志”并发送最新日志给作者。" Foreground="{StaticResource TextDim}" Margin="10,2,0,0"/>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,10">
+                    <Button Content="跳转作者" Padding="12,6" Click="OpenAuthor_Click" Style="{DynamicResource FluentButton}" x:Name="AuthorButton" />
+                    <Button Content="清空" Padding="12,6" Margin="8,0,0,0" Click="ClearLog_Click" Style="{DynamicResource FluentButton}" x:Name="ClearLogButton" />
+                    <Button Content="复制全部" Padding="12,6" Margin="8,0,0,0" Click="CopyLog_Click" Style="{DynamicResource FluentButton}" x:Name="CopyLogButton" />
+                </StackPanel>
+
+                <TextBox x:Name="LogBox" IsReadOnly="True" TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" AcceptsReturn="True" VerticalAlignment="Stretch" MinHeight="160" FontFamily="Consolas"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

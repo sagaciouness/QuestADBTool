@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+        <ApplicationIcon>app.ico</ApplicationIcon>
+<OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>QuestADBTool</AssemblyName>
+    <RootNamespace>QuestADBTool</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="adb\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  </Project>
+
