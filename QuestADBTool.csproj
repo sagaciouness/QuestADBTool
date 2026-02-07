@@ -17,6 +17,11 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="QuestADBTool_Package_0.1\**\*.cs" />
+    <Page Remove="QuestADBTool_Package_0.1\**\*.xaml" />
+    <None Include="QuestADBTool_Package_0.1\**\*" />
+  </ItemGroup>
+
 
   </Project>
-
