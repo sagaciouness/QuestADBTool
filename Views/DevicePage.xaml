@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="QuestADBTool.Views.DevicePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True">
+    <Border Style="{StaticResource CardBorder}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.25*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="1.75*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="12" Padding="14,12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse x:Name="StatusDot" Width="12" Height="12" Fill="#9CA3AF" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="设备连接" FontSize="15" FontWeight="SemiBold"/>
+                        </StackPanel>
+                        <TextBlock x:Name="StatusText" Text="正在检测..." Foreground="{StaticResource TextDim}" Margin="0,8,0,0" FontSize="14"/>
+                        <TextBlock x:Name="StatusHintText" Text="请保持头显已开机并连接数据线" Foreground="{StaticResource TextDim}" Opacity="0.82" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Grid Grid.Column="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <WrapPanel Grid.Row="0">
+                        <Button x:Name="RefreshButton" Content="重新检测" Height="44" Margin="0,0,8,8" Style="{DynamicResource PrimaryButton}"/>
+                        <Button x:Name="RestartButton" Content="修复连接" Height="44" Margin="0,0,8,8" Style="{DynamicResource FluentButton}"/>
+                        <Button x:Name="CheckUpdateButton" Content="检查更新" Height="44" Margin="0,0,8,8" Style="{DynamicResource FluentButton}"/>
+                        <Button x:Name="GuideButton" Content="新手引导" Height="44" Margin="0,0,8,8" ToolTip="打开新手使用说明（可随时查看）" Style="{DynamicResource FluentButton}"/>
+                        <Button x:Name="OpenLogButton" Content="打开问题日志" Height="44" Margin="0,0,0,8" Style="{DynamicResource FluentButton}"/>
+                    </WrapPanel>
+
+                    <Border Grid.Row="1" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10,8">
+                        <TextBlock Foreground="{StaticResource TextDim}" TextWrapping="Wrap" Text="提示：首次连接若提示需要授权，请先戴上头显点击“允许 USB 调试”；如遇 offline，优先主板 USB 2.0 Type-A 接口。"/>
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,14,0,0">
+                <Button x:Name="DeviceInfoScrollLeftButton" Visibility="Collapsed" Width="1" Height="1" MinWidth="1" MinHeight="1"/>
+                <Button x:Name="DeviceInfoScrollRightButton" Visibility="Collapsed" Width="1" Height="1" MinWidth="1" MinHeight="1"/>
+
+                <ScrollViewer x:Name="DeviceInfoScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled" CanContentScroll="False">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceSerialText" Text="设备序列号：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,10" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceModelText" Text="设备型号：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        </Border>
+                        <Border Grid.Row="0" Grid.Column="2" Margin="0,0,0,10" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceAndroidText" Text="Android：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        </Border>
+
+                        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceBatteryText" Text="电量：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceStorageText" Text="存储：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        </Border>
+                        <Border Grid.Row="1" Grid.Column="2" Margin="0,0,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock Foreground="{StaticResource TextDim}" Text="连接方式：USB 调试"/>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

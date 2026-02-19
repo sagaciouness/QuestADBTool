@@ -22,8 +22,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="QuestADBTool_Package_0.1\**\*.cs" />
+    <Compile Remove="artifacts\**\*.cs" />
     <Page Remove="QuestADBTool_Package_0.1\**\*.xaml" />
+    <Page Remove="artifacts\**\*.xaml" />
     <None Include="QuestADBTool_Package_0.1\**\*" />
   </ItemGroup>
 

@@ -20,11 +20,20 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
 using System.Windows.Threading;
+using QuestADBTool.Views;
 
 namespace QuestADBTool;
 
 public partial class MainWindow : Window
 {
+    private enum AppPage
+    {
+        Device,
+        Install,
+        Log,
+        About
+    }
+
     private sealed class InstallQueueItem : INotifyPropertyChanged
     {
         private string _status = QueuePending;
@@ -173,6 +182,9 @@ public partial class MainWindow : Window
     private bool _isDeviceReady;
     private bool _isLogExpanded;
     private bool _isGuideDrawerAnimating;
+    private bool _isNavPinned;
+    private bool _isNavAnimating;
+    private bool _navIntroPlayed;
     private ResponsiveTier _responsiveTier = ResponsiveTier.Wide;
     private UpdateManifest? _latestUpdate;
 
@@ -190,6 +202,9 @@ public partial class MainWindow : Window
     private string _logFilePath = "";
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private const string UpdateManifestUrl = "https://superpixel-1302573006.cos.ap-nanjing.myqcloud.com/update.json";
+    private const double NavCollapsedWidth = 56;
+    private const double NavExpandedWidth = 240;
+    private readonly bool _navKeepExpandedAfterIntro = false;
 
     private enum ResponsiveTier
     {
@@ -198,9 +213,73 @@ public partial class MainWindow : Window
         Compact
     }
 
+    private AppPage _activePage = AppPage.Install;
+
+    private System.Windows.Shapes.Ellipse StatusDot => DevicePageHost.StatusDotControl;
+    private System.Windows.Controls.TextBlock StatusText => DevicePageHost.StatusTextControl;
+    private System.Windows.Controls.TextBlock StatusHintText => DevicePageHost.StatusHintTextControl;
+    private System.Windows.Controls.Button RefreshButton => DevicePageHost.RefreshButtonControl;
+    private System.Windows.Controls.Button RestartButton => DevicePageHost.RestartButtonControl;
+    private System.Windows.Controls.Button GuideButton => DevicePageHost.GuideButtonControl;
+    private System.Windows.Controls.Button OpenLogButton => DevicePageHost.OpenLogButtonControl;
+    private System.Windows.Controls.Button CheckUpdateButton => DevicePageHost.CheckUpdateButtonControl;
+    private System.Windows.Controls.ScrollViewer DeviceInfoScrollViewer => DevicePageHost.DeviceInfoScrollViewerControl;
+    private System.Windows.Controls.Button DeviceInfoScrollLeftButton => DevicePageHost.DeviceInfoScrollLeftButtonControl;
+    private System.Windows.Controls.Button DeviceInfoScrollRightButton => DevicePageHost.DeviceInfoScrollRightButtonControl;
+    private System.Windows.Controls.TextBlock DeviceSerialText => DevicePageHost.DeviceSerialTextControl;
+    private System.Windows.Controls.TextBlock DeviceModelText => DevicePageHost.DeviceModelTextControl;
+    private System.Windows.Controls.TextBlock DeviceAndroidText => DevicePageHost.DeviceAndroidTextControl;
+    private System.Windows.Controls.TextBlock DeviceBatteryText => DevicePageHost.DeviceBatteryTextControl;
+    private System.Windows.Controls.TextBlock DeviceStorageText => DevicePageHost.DeviceStorageTextControl;
+
+    private System.Windows.Controls.Border InstallCardBorder => InstallPageHost.InstallCardBorderControl;
+    private System.Windows.Controls.ColumnDefinition InstallLeftColumn => InstallPageHost.InstallLeftColumnControl;
+    private System.Windows.Controls.ColumnDefinition InstallRightColumn => InstallPageHost.InstallRightColumnControl;
+    private System.Windows.Controls.TextBlock InstallSuccessBadge => InstallPageHost.InstallSuccessBadgeControl;
+    private System.Windows.Controls.TextBlock InstallFailBadge => InstallPageHost.InstallFailBadgeControl;
+    private System.Windows.Shapes.Ellipse InstallDeviceStateDot => InstallPageHost.InstallDeviceStateDotControl;
+    private System.Windows.Controls.TextBlock InstallDeviceStateText => InstallPageHost.InstallDeviceStateTextControl;
+    private System.Windows.Controls.Button InstallHeaderRefreshButton => InstallPageHost.InstallHeaderRefreshButtonControl;
+    private System.Windows.Controls.TextBox ApkPathBox => InstallPageHost.ApkPathBoxControl;
+    private System.Windows.Controls.Button PickApkButton => InstallPageHost.PickApkButtonControl;
+    private System.Windows.Controls.Button InstallApkButton => InstallPageHost.InstallApkButtonControl;
+    private System.Windows.Controls.TextBox InputTextBox => InstallPageHost.InputTextBoxControl;
+    private System.Windows.Controls.Button SendTextButton => InstallPageHost.SendTextButtonControl;
+    private System.Windows.Controls.TextBlock ApkInfoFileText => InstallPageHost.ApkInfoFileTextControl;
+    private System.Windows.Controls.TextBlock ApkInfoSizeText => InstallPageHost.ApkInfoSizeTextControl;
+    private System.Windows.Controls.TextBlock ApkInfoPackageText => InstallPageHost.ApkInfoPackageTextControl;
+    private System.Windows.Controls.TextBlock ApkInfoVersionText => InstallPageHost.ApkInfoVersionTextControl;
+    private System.Windows.Controls.Expander AdvancedOptionsExpander => InstallPageHost.AdvancedOptionsExpanderControl;
+    private System.Windows.Controls.CheckBox ReplaceInstallCheckBox => InstallPageHost.ReplaceInstallCheckBoxControl;
+    private System.Windows.Controls.CheckBox AllowDowngradeCheckBox => InstallPageHost.AllowDowngradeCheckBoxControl;
+    private System.Windows.Controls.CheckBox AllowTestApkCheckBox => InstallPageHost.AllowTestApkCheckBoxControl;
+    private System.Windows.Controls.TextBlock QueueCountText => InstallPageHost.QueueCountTextControl;
+    private System.Windows.Controls.ListBox QueueListBox => InstallPageHost.QueueListBoxControl;
+    private System.Windows.Controls.Button AddQueueButton => InstallPageHost.AddQueueButtonControl;
+    private System.Windows.Controls.Button StartQueueButton => InstallPageHost.StartQueueButtonControl;
+    private System.Windows.Controls.Button ClearQueueButton => InstallPageHost.ClearQueueButtonControl;
+    private System.Windows.Controls.Button RetryFailedButton => InstallPageHost.RetryFailedButtonControl;
+    private System.Windows.Controls.Button RemoveSelectedButton => InstallPageHost.RemoveSelectedButtonControl;
+    private System.Windows.Controls.Border InstallBusyOverlay => InstallPageHost.InstallBusyOverlayControl;
+    private System.Windows.Controls.TextBlock InstallOverlayText => InstallPageHost.InstallOverlayTextControl;
+    private System.Windows.Controls.ProgressBar InstallOverlayProgressBar => InstallPageHost.InstallOverlayProgressBarControl;
+    private System.Windows.Controls.TextBlock InstallOverlayElapsedText => InstallPageHost.InstallOverlayElapsedTextControl;
+
+    private System.Windows.Controls.Button ToggleLogButton => LogPageHost.ToggleLogButtonControl;
+    private System.Windows.Controls.StackPanel LogBodyPanel => LogPageHost.LogBodyPanelControl;
+    private System.Windows.Controls.Button AuthorButton => LogPageHost.AuthorButtonControl;
+    private System.Windows.Controls.Button ClearLogButton => LogPageHost.ClearLogButtonControl;
+    private System.Windows.Controls.Button CopyLogButton => LogPageHost.CopyLogButtonControl;
+    private System.Windows.Controls.TextBox LogBox => LogPageHost.LogBoxControl;
+
     public MainWindow()
     {
         InitializeComponent();
+        WirePageEvents();
+        SwitchPage(AppPage.Install);
+        SetNavRailVisualState(expanded: false);
+        UpdateNavPinToggleVisual();
+        UpdateWindowChromeButtons();
 
         _installCardDefaultBorderBrush = InstallCardBorder.BorderBrush;
         _installCardDefaultBorderThickness = InstallCardBorder.BorderThickness;
@@ -235,9 +314,498 @@ public partial class MainWindow : Window
 
         Loaded += async (_, __) =>
         {
+            await PlayNavRailStartupAnimationAsync();
             await RefreshStatus();
             await CheckForUpdatesAsync(userInitiated: false);
         };
+        StateChanged += (_, __) => UpdateWindowChromeButtons();
+    }
+
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            ToggleWindowState();
+            return;
+        }
+        DragMove();
+    }
+
+    private void MinButton_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void MaxRestoreButton_Click(object sender, RoutedEventArgs e) => ToggleWindowState();
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void ToggleWindowState()
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        UpdateWindowChromeButtons();
+    }
+
+    private void UpdateWindowChromeButtons()
+    {
+        if (MaxRestoreButton == null) return;
+        MaxRestoreButton.Content = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+    }
+
+    private async Task PlayNavRailStartupAnimationAsync()
+    {
+        if (_navIntroPlayed) return;
+        _navIntroPlayed = true;
+        _isNavPinned = true;
+        await AnimateNavRailAsync(expand: true, durationMs: 320);
+
+        if (_navKeepExpandedAfterIntro)
+        {
+            _isNavPinned = true;
+            UpdateNavPinToggleVisual();
+            return;
+        }
+
+        _isNavPinned = false;
+        UpdateNavPinToggleVisual();
+        if (!NavRail.IsMouseOver)
+        {
+            await AnimateNavRailAsync(expand: false, durationMs: 260);
+        }
+    }
+
+    private async Task AnimateNavRailAsync(bool expand, int durationMs)
+    {
+        if (NavRail == null) return;
+        if (_isNavAnimating) return;
+
+        _isNavAnimating = true;
+        var tcs = new TaskCompletionSource<bool>();
+
+        if (expand)
+        {
+            if (NavBrandIconHost != null)
+            {
+                NavBrandIconHost.Visibility = Visibility.Visible;
+                NavBrandIconHost.Opacity = 1;
+            }
+            foreach (var label in GetNavLabels())
+            {
+                label.Visibility = Visibility.Visible;
+            }
+        }
+        else
+        {
+            if (NavBrandIconHost != null)
+            {
+                NavBrandIconHost.Visibility = Visibility.Visible;
+                NavBrandIconHost.Opacity = 0;
+            }
+        }
+
+        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var sb = new Storyboard();
+
+        var widthAnim = new DoubleAnimation
+        {
+            To = expand ? NavExpandedWidth : NavCollapsedWidth,
+            Duration = TimeSpan.FromMilliseconds(durationMs),
+            EasingFunction = ease
+        };
+        Storyboard.SetTarget(widthAnim, NavRail);
+        Storyboard.SetTargetProperty(widthAnim, new PropertyPath(FrameworkElement.WidthProperty));
+        sb.Children.Add(widthAnim);
+
+        foreach (var label in GetNavLabels())
+        {
+            var opacityAnim = new DoubleAnimation
+            {
+                To = expand ? 1 : 0,
+                Duration = TimeSpan.FromMilliseconds(Math.Max(120, durationMs - 40)),
+                EasingFunction = ease
+            };
+            Storyboard.SetTarget(opacityAnim, label);
+            Storyboard.SetTargetProperty(opacityAnim, new PropertyPath(UIElement.OpacityProperty));
+            sb.Children.Add(opacityAnim);
+
+            var offsetAnim = new DoubleAnimation
+            {
+                To = expand ? 0 : 8,
+                Duration = TimeSpan.FromMilliseconds(durationMs),
+                EasingFunction = ease
+            };
+            Storyboard.SetTarget(offsetAnim, label);
+            Storyboard.SetTargetProperty(offsetAnim, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.X)"));
+            sb.Children.Add(offsetAnim);
+        }
+
+        if (NavBrandIconHost != null)
+        {
+            var brandIconOpacityAnim = new DoubleAnimation
+            {
+                To = expand ? 0 : 1,
+                Duration = TimeSpan.FromMilliseconds(Math.Max(120, durationMs - 40)),
+                EasingFunction = ease
+            };
+            Storyboard.SetTarget(brandIconOpacityAnim, NavBrandIconHost);
+            Storyboard.SetTargetProperty(brandIconOpacityAnim, new PropertyPath(UIElement.OpacityProperty));
+            sb.Children.Add(brandIconOpacityAnim);
+        }
+
+        sb.Completed += (_, __) =>
+        {
+            if (!expand)
+            {
+                foreach (var label in GetNavLabels())
+                {
+                    label.Visibility = Visibility.Collapsed;
+                }
+                if (NavBrandIconHost != null) NavBrandIconHost.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                if (NavBrandIconHost != null) NavBrandIconHost.Visibility = Visibility.Collapsed;
+            }
+            _isNavAnimating = false;
+            tcs.TrySetResult(true);
+        };
+
+        sb.Begin();
+        await tcs.Task;
+    }
+
+    private void SetNavRailVisualState(bool expanded)
+    {
+        if (NavRail == null) return;
+        NavRail.Width = expanded ? NavExpandedWidth : NavCollapsedWidth;
+        if (NavBrandIconHost != null) NavBrandIconHost.Visibility = expanded ? Visibility.Collapsed : Visibility.Visible;
+        foreach (var label in GetNavLabels())
+        {
+            label.Opacity = expanded ? 1 : 0;
+            label.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+            if (label.RenderTransform is TranslateTransform tf)
+            {
+                tf.X = expanded ? 0 : 8;
+            }
+        }
+    }
+
+    private IEnumerable<System.Windows.Controls.TextBlock> GetNavLabels()
+    {
+        return new[]
+        {
+            NavDeviceText,
+            NavInstallText,
+            NavLogText,
+            NavAboutText,
+            NavBrandTextA,
+            NavBrandTextB
+        };
+    }
+
+    private async void NavRail_MouseEnter(object sender, MouseEventArgs e)
+    {
+        if (_isNavPinned || _isNavAnimating) return;
+        await AnimateNavRailAsync(expand: true, durationMs: 260);
+    }
+
+    private async void NavRail_MouseLeave(object sender, MouseEventArgs e)
+    {
+        if (_isNavPinned || _isNavAnimating) return;
+        await AnimateNavRailAsync(expand: false, durationMs: 220);
+    }
+
+    private async void NavPinToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isNavAnimating) return;
+
+        if (_isNavPinned)
+        {
+            _isNavPinned = false;
+            UpdateNavPinToggleVisual();
+            await AnimateNavRailAsync(expand: false, durationMs: 240);
+            return;
+        }
+
+        _isNavPinned = true;
+        UpdateNavPinToggleVisual();
+        await AnimateNavRailAsync(expand: true, durationMs: 280);
+    }
+
+    private void UpdateNavPinToggleVisual()
+    {
+        if (NavPinToggleButton == null || NavPinToggleIcon == null) return;
+
+        var text = _isNavPinned ? "收起侧栏" : "展开侧栏";
+        NavPinToggleButton.ToolTip = text;
+        NavPinToggleIcon.Text = _isNavPinned ? "\uE76B" : "\uE76C";
+    }
+
+    private void WirePageEvents()
+    {
+        RefreshButton.Click += Refresh_Click;
+        InstallHeaderRefreshButton.Click += Refresh_Click;
+        RestartButton.Click += RestartAdb_Click;
+        GuideButton.Click += Guide_Click;
+        OpenLogButton.Click += OpenLog_Click;
+        CheckUpdateButton.Click += CheckUpdate_Click;
+        DeviceInfoScrollLeftButton.Click += DeviceInfoScrollLeft_Click;
+        DeviceInfoScrollRightButton.Click += DeviceInfoScrollRight_Click;
+
+        InstallCardBorder.PreviewDragOver += InstallArea_PreviewDragOver;
+        InstallCardBorder.DragLeave += InstallArea_DragLeave;
+        InstallCardBorder.Drop += InstallArea_Drop;
+        ApkPathBox.TextChanged += ApkPathBox_TextChanged;
+        ApkPathBox.PreviewDragOver += InstallArea_PreviewDragOver;
+        ApkPathBox.DragLeave += InstallArea_DragLeave;
+        ApkPathBox.Drop += InstallArea_Drop;
+        PickApkButton.Click += PickApk_Click;
+        InstallApkButton.Click += InstallApk_Click;
+        AddQueueButton.Click += AddQueueButton_Click;
+        StartQueueButton.Click += StartQueueButton_Click;
+        ClearQueueButton.Click += ClearQueueButton_Click;
+        RetryFailedButton.Click += RetryFailedButton_Click;
+        RemoveSelectedButton.Click += RemoveSelectedButton_Click;
+        QueueListBox.SelectionChanged += QueueListBox_SelectionChanged;
+        SendTextButton.Click += SendText_Click;
+
+        ToggleLogButton.Click += ToggleLogCollapse_Click;
+        ClearLogButton.Click += ClearLog_Click;
+        CopyLogButton.Click += CopyLog_Click;
+        AuthorButton.Click += OpenAuthor_Click;
+    }
+
+    private void SwitchPage(AppPage page)
+    {
+        _activePage = page;
+        DevicePageHost.Visibility = page == AppPage.Device ? Visibility.Visible : Visibility.Collapsed;
+        InstallPageHost.Visibility = page == AppPage.Install ? Visibility.Visible : Visibility.Collapsed;
+        LogPageHost.Visibility = page == AppPage.Log ? Visibility.Visible : Visibility.Collapsed;
+        AboutPageHost.Visibility = page == AppPage.About ? Visibility.Visible : Visibility.Collapsed;
+        ApplyNavSelectionVisuals(page);
+    }
+
+    private void ApplyNavSelectionVisuals(AppPage page)
+    {
+        var idleText = ResolveBrush("NavTextIdleBrush", "#8A8A90");
+        var activeText = ResolveBrush("NavTextActiveBrush", "#1F1F23");
+        var idleIcon = ResolveBrush("NavIconIdleBrush", "#C5C5C9");
+        var activeIcon = ResolveBrush("NavIconActiveBrush", "#1C1C1F");
+        var activeBg = ResolveBrush("NavItemActiveBrush", "#D8D8DC");
+
+        SetNavItemVisual(page == AppPage.Device, NavDeviceButton, NavDeviceIndicator, NavDeviceIcon, NavDeviceText, idleIcon, activeIcon, idleText, activeText, activeBg);
+        SetNavItemVisual(page == AppPage.Install, NavInstallButton, NavInstallIndicator, NavInstallIcon, NavInstallText, idleIcon, activeIcon, idleText, activeText, activeBg);
+        SetNavItemVisual(page == AppPage.Log, NavLogButton, NavLogIndicator, NavLogIcon, NavLogText, idleIcon, activeIcon, idleText, activeText, activeBg);
+        SetNavItemVisual(page == AppPage.About, NavAboutButton, NavAboutIndicator, NavAboutIcon, NavAboutText, idleIcon, activeIcon, idleText, activeText, activeBg);
+    }
+
+    private static void SetNavItemVisual(
+        bool isActive,
+        System.Windows.Controls.Button button,
+        System.Windows.Controls.Border indicator,
+        System.Windows.Controls.TextBlock icon,
+        System.Windows.Controls.TextBlock label,
+        Brush idleIcon,
+        Brush activeIcon,
+        Brush idleText,
+        Brush activeText,
+        Brush activeBackground)
+    {
+        indicator.Visibility = isActive ? Visibility.Visible : Visibility.Collapsed;
+        button.Background = isActive ? activeBackground : Brushes.Transparent;
+        icon.Foreground = isActive ? activeIcon : idleIcon;
+        label.Foreground = isActive ? activeText : idleText;
+    }
+
+    private void NavDevice_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Device);
+    private void NavInstall_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Install);
+    private void NavLog_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Log);
+    private void NavAbout_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.About);
+
+    private async void ExpReadDisplay_Click(object sender, RoutedEventArgs e) => await ReadExperimentalDisplayInfoAsync(showNotice: true);
+
+    private async void ExpApplyResolution_Click(object sender, RoutedEventArgs e)
+    {
+        if (!int.TryParse(ExpResolutionWidthBox.Text.Trim(), out var width) ||
+            !int.TryParse(ExpResolutionHeightBox.Text.Trim(), out var height) ||
+            width < 3200 || width > 5408 ||
+            height < 1728 || height > 2912)
+        {
+            ShowNotice("分辨率范围：宽 3200~5408，高 1728~2912。", "warn");
+            return;
+        }
+
+        SetBusy(true, "正在应用分辨率...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+            var result = await RunAdb($"shell wm size {width}x{height}");
+            if (result.ExitCode != 0)
+            {
+                ShowNotice("分辨率设置失败，请查看日志。", "warn");
+                return;
+            }
+            ShowNotice($"已应用分辨率：{width}x{height}", "info");
+            await ReadExperimentalDisplayInfoAsync(showNotice: false);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async void ExpResetResolution_Click(object sender, RoutedEventArgs e)
+    {
+        SetBusy(true, "正在重置分辨率...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+            var result = await RunAdb("shell wm size reset");
+            if (result.ExitCode != 0)
+            {
+                var readResult = await RunAdb("shell wm size", logCommand: false);
+                var physical = TryParsePhysicalSize(readResult.StdOut);
+                if (physical == null)
+                {
+                    ShowNotice("分辨率重置失败，且未读取到 Physical size。", "warn");
+                    return;
+                }
+
+                var fallbackResult = await RunAdb($"shell wm size {physical.Value.Width}x{physical.Value.Height}");
+                if (fallbackResult.ExitCode != 0)
+                {
+                    ShowNotice("分辨率重置失败（fallback 也失败），请查看日志。", "warn");
+                    return;
+                }
+
+                ShowNotice($"系统不支持 reset，已回写 Physical size：{physical.Value.Width}x{physical.Value.Height}", "info");
+                await ReadExperimentalDisplayInfoAsync(showNotice: false);
+                return;
+            }
+            ShowNotice("分辨率已重置为系统默认。", "info");
+            await ReadExperimentalDisplayInfoAsync(showNotice: false);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async void ExpApplyRefresh_Click(object sender, RoutedEventArgs e)
+    {
+        if (!double.TryParse(ExpRefreshRateBox.Text.Trim(), out var hz) || hz < 72 || hz > 120)
+        {
+            ShowNotice("刷新率范围：72~120Hz。", "warn");
+            return;
+        }
+        await ApplyRefreshRateAsync(hz);
+    }
+
+    private async void ExpRefresh90_Click(object sender, RoutedEventArgs e)
+    {
+        ExpRefreshRateBox.Text = "90";
+        await ApplyRefreshRateAsync(90);
+    }
+
+    private async void ExpRefresh120_Click(object sender, RoutedEventArgs e)
+    {
+        ExpRefreshRateBox.Text = "120";
+        await ApplyRefreshRateAsync(120);
+    }
+
+    private async Task ApplyRefreshRateAsync(double hz)
+    {
+        SetBusy(true, "正在应用刷新率...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+
+            var rate = hz.ToString("0.##");
+            await RunAdb($"shell settings put system peak_refresh_rate {rate}");
+            await RunAdb($"shell settings put system min_refresh_rate {rate}");
+            await RunAdb($"shell settings put system user_refresh_rate {rate}");
+
+            ShowNotice($"已应用刷新率：{rate}Hz", "info");
+            await ReadExperimentalDisplayInfoAsync(showNotice: false);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async Task<bool> EnsureExperimentReadyAsync()
+    {
+        if (!EnsureAdbExists()) return false;
+        var state = await GetDeviceState();
+        return GuardDeviceState(state);
+    }
+
+    private async Task ReadExperimentalDisplayInfoAsync(bool showNotice)
+    {
+        SetBusy(true, "正在读取显示参数...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+
+            var sizeResult = await RunAdb("shell wm size", logCommand: false);
+            var peakResult = await RunAdb("shell settings get system peak_refresh_rate", logCommand: false);
+            var minResult = await RunAdb("shell settings get system min_refresh_rate", logCommand: false);
+            var userResult = await RunAdb("shell settings get system user_refresh_rate", logCommand: false);
+
+            var sizeText = ParseWmSizeForDisplay(sizeResult.StdOut);
+            var peak = NormalizeRefreshValue(FirstLineOrDefault(peakResult.StdOut, "-"));
+            var min = NormalizeRefreshValue(FirstLineOrDefault(minResult.StdOut, "-"));
+            var user = NormalizeRefreshValue(FirstLineOrDefault(userResult.StdOut, "-"));
+
+            ExpDisplayInfoText.Text = $"分辨率：{sizeText}\n刷新率：peak={peak} / min={min} / user={user}";
+
+            var sizeMatch = Regex.Match(sizeResult.StdOut ?? "", @"(Override size|Physical size):\s*(\d+)x(\d+)", RegexOptions.IgnoreCase);
+            if (sizeMatch.Success)
+            {
+                ExpResolutionWidthBox.Text = sizeMatch.Groups[2].Value;
+                ExpResolutionHeightBox.Text = sizeMatch.Groups[3].Value;
+            }
+
+            var userRate = NormalizeRefreshValue(FirstLineOrDefault(userResult.StdOut, "").Trim());
+            if (!string.IsNullOrWhiteSpace(userRate) && !string.Equals(userRate, "系统默认", StringComparison.OrdinalIgnoreCase))
+            {
+                ExpRefreshRateBox.Text = userRate;
+            }
+
+            if (showNotice) ShowNotice("已读取当前显示参数。", "info");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private static string ParseWmSizeForDisplay(string output)
+    {
+        var overrideMatch = Regex.Match(output ?? "", @"Override size:\s*(\d+x\d+)", RegexOptions.IgnoreCase);
+        if (overrideMatch.Success) return $"{overrideMatch.Groups[1].Value}（已覆盖）";
+
+        var physicalMatch = Regex.Match(output ?? "", @"Physical size:\s*(\d+x\d+)", RegexOptions.IgnoreCase);
+        if (physicalMatch.Success) return physicalMatch.Groups[1].Value;
+
+        return "-";
+    }
+
+    private static (int Width, int Height)? TryParsePhysicalSize(string output)
+    {
+        var match = Regex.Match(output ?? "", @"Physical size:\s*(\d+)x(\d+)", RegexOptions.IgnoreCase);
+        if (!match.Success) return null;
+        if (!int.TryParse(match.Groups[1].Value, out var width)) return null;
+        if (!int.TryParse(match.Groups[2].Value, out var height)) return null;
+        return (width, height);
+    }
+
+    private static string NormalizeRefreshValue(string? raw)
+    {
+        var text = (raw ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(text) || text == "-" || string.Equals(text, "null", StringComparison.OrdinalIgnoreCase))
+        {
+            return "系统默认";
+        }
+        return text;
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyResponsiveLayout();
@@ -1089,9 +1657,16 @@ public partial class MainWindow : Window
         if (AllowDowngradeCheckBox != null) AllowDowngradeCheckBox.IsEnabled = !isBusy;
         if (AllowTestApkCheckBox != null) AllowTestApkCheckBox.IsEnabled = !isBusy;
         if (RefreshButton != null) RefreshButton.IsEnabled = !isBusy;
+        if (InstallHeaderRefreshButton != null) InstallHeaderRefreshButton.IsEnabled = !isBusy;
         if (RestartButton != null) RestartButton.IsEnabled = !isBusy;
         if (OpenLogButton != null) OpenLogButton.IsEnabled = !isBusy;
         if (GuideButton != null) GuideButton.IsEnabled = !isBusy;
+        if (ExpReadDisplayButton != null) ExpReadDisplayButton.IsEnabled = !isBusy;
+        if (ExpApplyResolutionButton != null) ExpApplyResolutionButton.IsEnabled = !isBusy;
+        if (ExpResetResolutionButton != null) ExpResetResolutionButton.IsEnabled = !isBusy;
+        if (ExpApplyRefreshButton != null) ExpApplyRefreshButton.IsEnabled = !isBusy;
+        if (ExpRefresh90Button != null) ExpRefresh90Button.IsEnabled = !isBusy;
+        if (ExpRefresh120Button != null) ExpRefresh120Button.IsEnabled = !isBusy;
         if (ClearLogButton != null) ClearLogButton.IsEnabled = !isBusy;
         if (CopyLogButton != null) CopyLogButton.IsEnabled = !isBusy;
         if (AuthorButton != null) AuthorButton.IsEnabled = !isBusy;
@@ -1276,7 +1851,22 @@ public partial class MainWindow : Window
             "bad" => "#EF4444",
             _ => "#9CA3AF"
         };
-        StatusDot.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+        var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString(color));
+        StatusDot.Fill = brush;
+        if (InstallDeviceStateDot != null)
+        {
+            InstallDeviceStateDot.Fill = brush;
+        }
+        if (InstallDeviceStateText != null)
+        {
+            InstallDeviceStateText.Text = state switch
+            {
+                "ok" => "设备已连接",
+                "warn" => "等待授权",
+                "bad" => "未连接",
+                _ => "连接未知"
+            };
+        }
     }
 
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
