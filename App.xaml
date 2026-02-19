@@ -5,6 +5,10 @@
     
 
     <Application.Resources>
+        <Style TargetType="{x:Type Control}">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+
         <SolidColorBrush x:Key="Bg" Color="#F3F4F6"/>
         <SolidColorBrush x:Key="Card" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="SurfaceSubtle" Color="#F8FAFC"/>
