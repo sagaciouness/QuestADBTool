@@ -14,5 +14,8 @@ public partial class LogPage : UserControl
     public Button AuthorButtonControl => AuthorButton;
     public Button ClearLogButtonControl => ClearLogButton;
     public Button CopyLogButtonControl => CopyLogButton;
+    public Button ClearHistoryButtonControl => ClearHistoryButton;
+    public Button CopyHistoryButtonControl => CopyHistoryButton;
+    public ListBox OperationHistoryListBoxControl => OperationHistoryListBox;
     public TextBox LogBoxControl => LogBox;
 }

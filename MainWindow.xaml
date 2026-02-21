@@ -190,6 +190,20 @@
                             </Grid>
                         </Button>
 
+                        <Button x:Name="NavAppsButton" Height="54" Margin="0,0,0,1" Style="{StaticResource NavRailItemButtonStyle}" ToolTip="应用" Click="NavApps_Click" HorizontalContentAlignment="Stretch">
+                            <Grid>
+                                <Border x:Name="NavAppsIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
+                                <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NavAppsIcon" Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavAppsText" Text="应用" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform X="8"/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </Button>
+
                         <Button x:Name="NavLogButton" Height="54" Margin="0,0,0,1" Style="{StaticResource NavRailItemButtonStyle}" ToolTip="日志" Click="NavLog_Click" HorizontalContentAlignment="Stretch">
                             <Grid>
                                 <Border x:Name="NavLogIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
@@ -275,8 +289,9 @@
                 </Border>
 
                 <Grid Grid.Row="3" Margin="0,10,0,0">
-                    <views:DevicePage x:Name="DevicePageHost" Visibility="Collapsed"/>
-                    <views:InstallPage x:Name="InstallPageHost" Visibility="Visible"/>
+                    <views:DevicePage x:Name="DevicePageHost" Visibility="Visible"/>
+                    <views:InstallPage x:Name="InstallPageHost" Visibility="Collapsed"/>
+                    <views:AppManagePage x:Name="AppManagePageHost" Visibility="Collapsed"/>
                     <views:LogPage x:Name="LogPageHost" Visibility="Collapsed"/>
                     <Border x:Name="AboutPageHost" Visibility="Collapsed" Style="{StaticResource CardBorder}">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -380,7 +395,7 @@
                         <TextBlock Text="快速上手" FontWeight="SemiBold"/>
                         <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="1. 用可传输数据的数据线连接 Quest，并确保头显已开机。"/>
                         <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="2. 戴上头显，在授权弹窗里允许 USB 调试（建议勾选始终允许）。"/>
-                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="3. 回到工具，看到“已连接”后先加入 APK 队列，再点击开始安装。"/>
+                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="3. 工具默认会先打开“设备”页；确认状态为“已连接”后，切到“安装”页加入 APK 队列并开始安装。"/>
 
                         <Border Margin="0,12,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                             <StackPanel>

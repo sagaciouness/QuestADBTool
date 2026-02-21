@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     {
         Device,
         Install,
+        Apps,
         Log,
         About
     }
@@ -167,6 +168,39 @@ public partial class MainWindow : Window
 
     private enum DeviceState { Connected, Unauthorized, NotFound, Unknown }
 
+    private sealed class ManagedApp
+    {
+        public required string PackageName { get; init; }
+        public required string DisplayName { get; set; }
+        public bool IsSystemApp { get; init; }
+        public bool IsOfficialApp { get; init; }
+        public string VersionName { get; set; } = "-";
+        public string VersionCode { get; set; } = "-";
+        public string CodePath { get; set; } = "-";
+        public string FirstInstallTime { get; set; } = "-";
+        public string LastUpdateTime { get; set; } = "-";
+        public bool? IsLaunchable { get; set; }
+    }
+
+    private sealed class PackageDumpInfo
+    {
+        public string? DisplayName { get; set; }
+        public string? VersionName { get; set; }
+        public string? VersionCode { get; set; }
+        public string? CodePath { get; set; }
+        public string? FirstInstallTime { get; set; }
+        public string? LastUpdateTime { get; set; }
+    }
+
+    private sealed class OperationHistoryItem
+    {
+        public required string TimeText { get; init; }
+        public required string Category { get; init; }
+        public required string Action { get; init; }
+        public required string Target { get; init; }
+        public required string Result { get; init; }
+    }
+
     private const string QueuePending = "pending";
     private const string QueueInstalling = "installing";
     private const string QueueSuccess = "success";
@@ -176,6 +210,9 @@ public partial class MainWindow : Window
 
     private readonly object _logLock = new();
     private readonly ObservableCollection<InstallQueueItem> _installQueue = new();
+    private readonly ObservableCollection<ManagedApp> _managedApps = new();
+    private readonly ObservableCollection<OperationHistoryItem> _operationHistory = new();
+    private List<ManagedApp> _managedAppsAll = new();
 
     private bool _isBusy;
     private bool _isQueueRunning;
@@ -190,7 +227,9 @@ public partial class MainWindow : Window
 
     private DispatcherTimer? _installProgressTimer;
     private DispatcherTimer? _noticeTimer;
+    private DispatcherTimer? _navHoverIntentTimer;
     private DateTime _installStartAt;
+    private bool _navHoverExpandTarget;
 
     private Brush? _installCardDefaultBorderBrush;
     private Thickness _installCardDefaultBorderThickness;
@@ -213,7 +252,7 @@ public partial class MainWindow : Window
         Compact
     }
 
-    private AppPage _activePage = AppPage.Install;
+    private AppPage _activePage = AppPage.Device;
 
     private System.Windows.Shapes.Ellipse StatusDot => DevicePageHost.StatusDotControl;
     private System.Windows.Controls.TextBlock StatusText => DevicePageHost.StatusTextControl;
@@ -265,18 +304,35 @@ public partial class MainWindow : Window
     private System.Windows.Controls.ProgressBar InstallOverlayProgressBar => InstallPageHost.InstallOverlayProgressBarControl;
     private System.Windows.Controls.TextBlock InstallOverlayElapsedText => InstallPageHost.InstallOverlayElapsedTextControl;
 
+    private System.Windows.Controls.Button AppRefreshButton => AppManagePageHost.AppRefreshButtonControl;
+    private System.Windows.Controls.CheckBox AppIncludeSystemCheckBox => AppManagePageHost.AppIncludeSystemCheckBoxControl;
+    private System.Windows.Controls.TextBox AppSearchBox => AppManagePageHost.AppSearchBoxControl;
+    private System.Windows.Controls.TextBlock AppCountText => AppManagePageHost.AppCountTextControl;
+    private System.Windows.Controls.StackPanel AppRefreshProgressPanel => AppManagePageHost.AppRefreshProgressPanelControl;
+    private System.Windows.Controls.TextBlock AppRefreshProgressText => AppManagePageHost.AppRefreshProgressTextControl;
+    private System.Windows.Controls.TextBlock AppRefreshProgressValueText => AppManagePageHost.AppRefreshProgressValueTextControl;
+    private System.Windows.Controls.ProgressBar AppRefreshProgressBar => AppManagePageHost.AppRefreshProgressBarControl;
+    private System.Windows.Controls.ListBox AppListBox => AppManagePageHost.AppListBoxControl;
+    private System.Windows.Controls.TextBlock AppSelectedPackageText => AppManagePageHost.AppSelectedPackageTextControl;
+    private System.Windows.Controls.Button AppLaunchButton => AppManagePageHost.AppLaunchButtonControl;
+    private System.Windows.Controls.Button AppUninstallButton => AppManagePageHost.AppUninstallButtonControl;
+    private System.Windows.Controls.Button AppCopyPackageButton => AppManagePageHost.AppCopyPackageButtonControl;
+
     private System.Windows.Controls.Button ToggleLogButton => LogPageHost.ToggleLogButtonControl;
     private System.Windows.Controls.StackPanel LogBodyPanel => LogPageHost.LogBodyPanelControl;
     private System.Windows.Controls.Button AuthorButton => LogPageHost.AuthorButtonControl;
     private System.Windows.Controls.Button ClearLogButton => LogPageHost.ClearLogButtonControl;
     private System.Windows.Controls.Button CopyLogButton => LogPageHost.CopyLogButtonControl;
+    private System.Windows.Controls.Button ClearHistoryButton => LogPageHost.ClearHistoryButtonControl;
+    private System.Windows.Controls.Button CopyHistoryButton => LogPageHost.CopyHistoryButtonControl;
+    private System.Windows.Controls.ListBox OperationHistoryListBox => LogPageHost.OperationHistoryListBoxControl;
     private System.Windows.Controls.TextBox LogBox => LogPageHost.LogBoxControl;
 
     public MainWindow()
     {
         InitializeComponent();
         WirePageEvents();
-        SwitchPage(AppPage.Install);
+        SwitchPage(AppPage.Device);
         SetNavRailVisualState(expanded: false);
         UpdateNavPinToggleVisual();
         UpdateWindowChromeButtons();
@@ -286,6 +342,12 @@ public partial class MainWindow : Window
         _installCardDefaultBackground = InstallCardBorder.Background;
 
         QueueListBox.ItemsSource = _installQueue;
+        AppListBox.ItemsSource = _managedApps;
+        OperationHistoryListBox.ItemsSource = _operationHistory;
+        AppSearchBox.Text = "";
+        AppCountText.Text = "应用数：0";
+        AppSelectedPackageText.Text = "包名：-";
+        SetAppRefreshProgress(false, 0, 0, "");
         _installProgressTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
         _installProgressTimer.Tick += (_, __) =>
         {
@@ -301,9 +363,17 @@ public partial class MainWindow : Window
             _noticeTimer.Stop();
             NoticeBar.Visibility = Visibility.Collapsed;
         };
+        _navHoverIntentTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
+        _navHoverIntentTimer.Tick += async (_, __) =>
+        {
+            _navHoverIntentTimer.Stop();
+            if (_isNavPinned || _isNavAnimating) return;
+            await AnimateNavRailAsync(expand: _navHoverExpandTarget, durationMs: _navHoverExpandTarget ? 380 : 300);
+        };
 
         UpdateInstallStats();
         UpdateQueueStats();
+        UpdateAppManageActionButtons();
         ResetApkPreview();
         ResetDeviceInfo();
         SetStatusDot("idle");
@@ -354,7 +424,7 @@ public partial class MainWindow : Window
         if (_navIntroPlayed) return;
         _navIntroPlayed = true;
         _isNavPinned = true;
-        await AnimateNavRailAsync(expand: true, durationMs: 320);
+        await AnimateNavRailAsync(expand: true, durationMs: 420);
 
         if (_navKeepExpandedAfterIntro)
         {
@@ -367,7 +437,7 @@ public partial class MainWindow : Window
         UpdateNavPinToggleVisual();
         if (!NavRail.IsMouseOver)
         {
-            await AnimateNavRailAsync(expand: false, durationMs: 260);
+            await AnimateNavRailAsync(expand: false, durationMs: 320);
         }
     }
 
@@ -400,13 +470,19 @@ public partial class MainWindow : Window
             }
         }
 
-        var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+        var ease = new CubicEase { EasingMode = EasingMode.EaseInOut };
+        var widthDuration = TimeSpan.FromMilliseconds(durationMs);
+        var labelFadeDuration = TimeSpan.FromMilliseconds(expand ? 220 : 180);
+        var labelSlideDuration = TimeSpan.FromMilliseconds(expand ? 260 : 220);
+        var labelBeginTime = expand ? TimeSpan.FromMilliseconds(80) : TimeSpan.Zero;
+        var brandFadeDuration = TimeSpan.FromMilliseconds(200);
+        var brandBeginTime = expand ? TimeSpan.Zero : TimeSpan.FromMilliseconds(60);
         var sb = new Storyboard();
 
         var widthAnim = new DoubleAnimation
         {
             To = expand ? NavExpandedWidth : NavCollapsedWidth,
-            Duration = TimeSpan.FromMilliseconds(durationMs),
+            Duration = widthDuration,
             EasingFunction = ease
         };
         Storyboard.SetTarget(widthAnim, NavRail);
@@ -418,7 +494,8 @@ public partial class MainWindow : Window
             var opacityAnim = new DoubleAnimation
             {
                 To = expand ? 1 : 0,
-                Duration = TimeSpan.FromMilliseconds(Math.Max(120, durationMs - 40)),
+                BeginTime = labelBeginTime,
+                Duration = labelFadeDuration,
                 EasingFunction = ease
             };
             Storyboard.SetTarget(opacityAnim, label);
@@ -428,7 +505,8 @@ public partial class MainWindow : Window
             var offsetAnim = new DoubleAnimation
             {
                 To = expand ? 0 : 8,
-                Duration = TimeSpan.FromMilliseconds(durationMs),
+                BeginTime = labelBeginTime,
+                Duration = labelSlideDuration,
                 EasingFunction = ease
             };
             Storyboard.SetTarget(offsetAnim, label);
@@ -441,7 +519,8 @@ public partial class MainWindow : Window
             var brandIconOpacityAnim = new DoubleAnimation
             {
                 To = expand ? 0 : 1,
-                Duration = TimeSpan.FromMilliseconds(Math.Max(120, durationMs - 40)),
+                BeginTime = brandBeginTime,
+                Duration = brandFadeDuration,
                 EasingFunction = ease
             };
             Storyboard.SetTarget(brandIconOpacityAnim, NavBrandIconHost);
@@ -493,6 +572,7 @@ public partial class MainWindow : Window
         {
             NavDeviceText,
             NavInstallText,
+            NavAppsText,
             NavLogText,
             NavAboutText,
             NavBrandTextA,
@@ -503,13 +583,21 @@ public partial class MainWindow : Window
     private async void NavRail_MouseEnter(object sender, MouseEventArgs e)
     {
         if (_isNavPinned || _isNavAnimating) return;
-        await AnimateNavRailAsync(expand: true, durationMs: 260);
+        if (_navHoverIntentTimer == null) return;
+        _navHoverExpandTarget = true;
+        _navHoverIntentTimer.Stop();
+        _navHoverIntentTimer.Start();
+        await Task.CompletedTask;
     }
 
     private async void NavRail_MouseLeave(object sender, MouseEventArgs e)
     {
         if (_isNavPinned || _isNavAnimating) return;
-        await AnimateNavRailAsync(expand: false, durationMs: 220);
+        if (_navHoverIntentTimer == null) return;
+        _navHoverExpandTarget = false;
+        _navHoverIntentTimer.Stop();
+        _navHoverIntentTimer.Start();
+        await Task.CompletedTask;
     }
 
     private async void NavPinToggle_Click(object sender, RoutedEventArgs e)
@@ -520,13 +608,15 @@ public partial class MainWindow : Window
         {
             _isNavPinned = false;
             UpdateNavPinToggleVisual();
-            await AnimateNavRailAsync(expand: false, durationMs: 240);
+            _navHoverIntentTimer?.Stop();
+            await AnimateNavRailAsync(expand: false, durationMs: 320);
             return;
         }
 
         _isNavPinned = true;
         UpdateNavPinToggleVisual();
-        await AnimateNavRailAsync(expand: true, durationMs: 280);
+        _navHoverIntentTimer?.Stop();
+        await AnimateNavRailAsync(expand: true, durationMs: 380);
     }
 
     private void UpdateNavPinToggleVisual()
@@ -566,9 +656,20 @@ public partial class MainWindow : Window
         QueueListBox.SelectionChanged += QueueListBox_SelectionChanged;
         SendTextButton.Click += SendText_Click;
 
+        AppRefreshButton.Click += AppRefresh_Click;
+        AppIncludeSystemCheckBox.Checked += AppIncludeSystemChanged_Click;
+        AppIncludeSystemCheckBox.Unchecked += AppIncludeSystemChanged_Click;
+        AppSearchBox.TextChanged += AppSearchBox_TextChanged;
+        AppListBox.SelectionChanged += AppListBox_SelectionChanged;
+        AppLaunchButton.Click += AppLaunch_Click;
+        AppUninstallButton.Click += AppUninstall_Click;
+        AppCopyPackageButton.Click += AppCopyPackage_Click;
+
         ToggleLogButton.Click += ToggleLogCollapse_Click;
         ClearLogButton.Click += ClearLog_Click;
         CopyLogButton.Click += CopyLog_Click;
+        ClearHistoryButton.Click += ClearHistory_Click;
+        CopyHistoryButton.Click += CopyHistory_Click;
         AuthorButton.Click += OpenAuthor_Click;
     }
 
@@ -577,9 +678,15 @@ public partial class MainWindow : Window
         _activePage = page;
         DevicePageHost.Visibility = page == AppPage.Device ? Visibility.Visible : Visibility.Collapsed;
         InstallPageHost.Visibility = page == AppPage.Install ? Visibility.Visible : Visibility.Collapsed;
+        AppManagePageHost.Visibility = page == AppPage.Apps ? Visibility.Visible : Visibility.Collapsed;
         LogPageHost.Visibility = page == AppPage.Log ? Visibility.Visible : Visibility.Collapsed;
         AboutPageHost.Visibility = page == AppPage.About ? Visibility.Visible : Visibility.Collapsed;
         ApplyNavSelectionVisuals(page);
+
+        if (page == AppPage.Apps && _isDeviceReady && _managedApps.Count == 0 && !_isBusy)
+        {
+            _ = RefreshManagedAppsAsync(userInitiated: false);
+        }
     }
 
     private void ApplyNavSelectionVisuals(AppPage page)
@@ -592,6 +699,7 @@ public partial class MainWindow : Window
 
         SetNavItemVisual(page == AppPage.Device, NavDeviceButton, NavDeviceIndicator, NavDeviceIcon, NavDeviceText, idleIcon, activeIcon, idleText, activeText, activeBg);
         SetNavItemVisual(page == AppPage.Install, NavInstallButton, NavInstallIndicator, NavInstallIcon, NavInstallText, idleIcon, activeIcon, idleText, activeText, activeBg);
+        SetNavItemVisual(page == AppPage.Apps, NavAppsButton, NavAppsIndicator, NavAppsIcon, NavAppsText, idleIcon, activeIcon, idleText, activeText, activeBg);
         SetNavItemVisual(page == AppPage.Log, NavLogButton, NavLogIndicator, NavLogIcon, NavLogText, idleIcon, activeIcon, idleText, activeText, activeBg);
         SetNavItemVisual(page == AppPage.About, NavAboutButton, NavAboutIndicator, NavAboutIcon, NavAboutText, idleIcon, activeIcon, idleText, activeText, activeBg);
     }
@@ -616,8 +724,433 @@ public partial class MainWindow : Window
 
     private void NavDevice_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Device);
     private void NavInstall_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Install);
+    private void NavApps_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Apps);
     private void NavLog_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.Log);
     private void NavAbout_Click(object sender, RoutedEventArgs e) => SwitchPage(AppPage.About);
+
+    private async void AppRefresh_Click(object sender, RoutedEventArgs e) => await RefreshManagedAppsAsync(userInitiated: true);
+
+    private async void AppIncludeSystemChanged_Click(object sender, RoutedEventArgs e) => await RefreshManagedAppsAsync(userInitiated: true);
+
+    private void AppSearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyManagedAppFilter();
+
+    private async void AppListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        UpdateAppManageActionButtons();
+        await RefreshSelectedAppDetailsAsync();
+    }
+
+    private async void AppLaunch_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryGetSelectedManagedApp(out var app))
+        {
+            ShowNotice("请先选择一个应用。", "warn");
+            return;
+        }
+
+        if (app.IsLaunchable == false)
+        {
+            ShowNotice("该应用没有可启动入口（可能是服务组件）。", "warn");
+            return;
+        }
+
+        SetBusy(true, "正在启动应用...");
+        try
+        {
+            if (!EnsureAdbExists()) return;
+            var state = await GetDeviceState();
+            if (!GuardDeviceState(state)) return;
+
+            var result = await RunAdb($"shell monkey -p {app.PackageName} -c android.intent.category.LAUNCHER 1");
+            var combined = $"{result.StdOut}\n{result.StdErr}";
+            if (result.ExitCode == 0 && !combined.Contains("Exception", StringComparison.OrdinalIgnoreCase))
+            {
+                AddOperationHistory("应用管理", "启动应用", app.PackageName, "成功");
+                ShowNotice($"已尝试启动：{app.PackageName}", "info");
+                return;
+            }
+
+            AddOperationHistory("应用管理", "启动应用", app.PackageName, "失败");
+            ShowNotice("启动失败，请确认该应用存在可启动 Activity。", "warn");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async void AppUninstall_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryGetSelectedManagedApp(out var app))
+        {
+            ShowNotice("请先选择一个应用。", "warn");
+            return;
+        }
+
+        var confirm = MessageBox.Show(
+            $"确认卸载以下应用？\n\n{app.PackageName}",
+            "确认卸载",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (confirm != MessageBoxResult.Yes) return;
+
+        SetBusy(true, "正在卸载应用...");
+        try
+        {
+            if (!EnsureAdbExists()) return;
+            var state = await GetDeviceState();
+            if (!GuardDeviceState(state)) return;
+
+            var result = await RunAdb($"uninstall {app.PackageName}");
+            var combined = $"{result.StdOut}\n{result.StdErr}";
+            var success = result.ExitCode == 0 && combined.Contains("Success", StringComparison.OrdinalIgnoreCase);
+
+            if (!success && app.IsSystemApp)
+            {
+                var fallback = await RunAdb($"shell pm uninstall --user 0 {app.PackageName}");
+                combined = $"{fallback.StdOut}\n{fallback.StdErr}";
+                success = fallback.ExitCode == 0 && combined.Contains("Success", StringComparison.OrdinalIgnoreCase);
+            }
+
+            if (success)
+            {
+                _managedAppsAll = _managedAppsAll
+                    .Where(x => !x.PackageName.Equals(app.PackageName, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                ApplyManagedAppFilter();
+                AddOperationHistory("应用管理", "卸载应用", app.PackageName, "成功");
+                ShowNotice($"已卸载：{app.PackageName}", "info");
+                return;
+            }
+
+            AddOperationHistory("应用管理", "卸载应用", app.PackageName, "失败");
+            ShowNotice("卸载失败，请查看日志。", "warn");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private void AppCopyPackage_Click(object sender, RoutedEventArgs e)
+    {
+        if (!TryGetSelectedManagedApp(out var app))
+        {
+            ShowNotice("请先选择一个应用。", "warn");
+            return;
+        }
+
+        try
+        {
+            Clipboard.SetText(app.PackageName);
+            AddOperationHistory("应用管理", "复制包名", app.PackageName, "成功");
+            ShowNotice("包名已复制。", "info");
+        }
+        catch
+        {
+            AddOperationHistory("应用管理", "复制包名", app.PackageName, "失败");
+            ShowNotice("复制包名失败。", "warn");
+        }
+    }
+
+    private async Task RefreshManagedAppsAsync(bool userInitiated)
+    {
+        if (!EnsureAdbExists()) return;
+
+        var state = await GetDeviceState();
+        if (!GuardDeviceState(state)) return;
+
+        SetBusy(true, "正在读取应用列表...");
+        try
+        {
+            SetAppRefreshProgress(true, 0, 0, "正在读取应用列表...");
+            var includeSystem = AppIncludeSystemCheckBox.IsChecked == true;
+            var apps = await QueryManagedAppsAsync(includeSystem);
+            await PopulateManagedAppsDumpInfoAsync(apps);
+            _managedAppsAll = apps;
+            ApplyManagedAppFilter();
+            AddOperationHistory("应用管理", "刷新列表", includeSystem ? "包含系统应用" : "仅第三方", $"完成 {apps.Count} 项");
+
+            if (userInitiated)
+            {
+                ShowNotice($"已刷新应用列表，共 {apps.Count} 项。", "info");
+            }
+        }
+        finally
+        {
+            SetAppRefreshProgress(false, 0, 0, "");
+            SetBusy(false);
+        }
+    }
+
+    private async Task<List<ManagedApp>> QueryManagedAppsAsync(bool includeSystem)
+    {
+        var result = await RunAdb("shell pm list packages -f", logCommand: false);
+        var apps = ParsePackageListWithPath(result.StdOut);
+        if (apps.Count == 0)
+        {
+            var fallback = await RunAdb("shell pm list packages", logCommand: false);
+            apps = ParsePackageList(fallback.StdOut, isSystemApp: false);
+        }
+
+        if (!includeSystem)
+        {
+            apps = apps.Where(x => !x.IsSystemApp).ToList();
+        }
+
+        return apps
+            .OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(x => x.PackageName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private async Task PopulateManagedAppsDumpInfoAsync(List<ManagedApp> apps)
+    {
+        SetAppRefreshProgress(true, 0, apps.Count, $"正在读取应用详情 0/{apps.Count}");
+        var index = 0;
+        foreach (var app in apps)
+        {
+            var dumpResult = await RunAdb($"shell dumpsys package {app.PackageName}", logCommand: false, logOutput: false);
+            if (dumpResult.ExitCode == 0)
+            {
+                var dumpInfo = ParsePackageDumpInfo(dumpResult.StdOut);
+                ApplyPackageDumpInfo(app, dumpInfo);
+            }
+
+            index++;
+            SetAppRefreshProgress(true, index, apps.Count, $"正在读取应用详情 {index}/{apps.Count}");
+        }
+    }
+
+    private static List<ManagedApp> ParsePackageList(string output, bool isSystemApp)
+    {
+        return ParsePackageNames(output)
+            .Select(x => new ManagedApp
+            {
+                PackageName = x,
+                DisplayName = BuildDisplayNameFromPackage(x),
+                IsSystemApp = isSystemApp,
+                IsOfficialApp = IsOfficialPackage(x)
+            })
+            .OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private static List<ManagedApp> ParsePackageListWithPath(string output)
+    {
+        var apps = new List<ManagedApp>();
+        var lines = (output ?? "").Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            var raw = line.Trim();
+            if (!raw.StartsWith("package:", StringComparison.OrdinalIgnoreCase)) continue;
+
+            var content = raw["package:".Length..];
+            var splitIndex = content.LastIndexOf('=');
+            if (splitIndex <= 0 || splitIndex >= content.Length - 1) continue;
+
+            var codePath = content[..splitIndex].Trim();
+            var packageName = content[(splitIndex + 1)..].Trim();
+            if (string.IsNullOrWhiteSpace(packageName)) continue;
+
+            apps.Add(new ManagedApp
+            {
+                PackageName = packageName,
+                DisplayName = BuildDisplayNameFromPackage(packageName),
+                IsSystemApp = IsSystemCodePath(codePath),
+                IsOfficialApp = IsOfficialPackage(packageName),
+                CodePath = codePath
+            });
+        }
+
+        return apps;
+    }
+
+    private static bool IsSystemCodePath(string codePath)
+    {
+        if (string.IsNullOrWhiteSpace(codePath)) return false;
+        var p = codePath.Trim().ToLowerInvariant();
+        return p.StartsWith("/system/") ||
+               p.StartsWith("/product/") ||
+               p.StartsWith("/vendor/") ||
+               p.StartsWith("/odm/") ||
+               p.StartsWith("/system_ext/") ||
+               p.StartsWith("/apex/");
+    }
+
+    private static bool IsOfficialPackage(string packageName)
+    {
+        if (string.IsNullOrWhiteSpace(packageName)) return false;
+        return packageName.StartsWith("com.meta.", StringComparison.OrdinalIgnoreCase) ||
+               packageName.StartsWith("com.oculus.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string BuildDisplayNameFromPackage(string packageName)
+    {
+        if (string.IsNullOrWhiteSpace(packageName)) return "-";
+        var token = packageName.Split('.').LastOrDefault() ?? packageName;
+        if (string.IsNullOrWhiteSpace(token)) return packageName;
+
+        // Convert common package token styles to readable title.
+        var words = Regex.Matches(token, @"[A-Z]?[a-z]+|[A-Z]+(?![a-z])|\d+")
+            .Cast<Match>()
+            .Select(m => m.Value)
+            .ToList();
+        if (words.Count == 0) words = token.Split(new[] { '-', '_' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+        if (words.Count == 0) return packageName;
+
+        return string.Join(" ", words.Select(CapitalizeToken));
+    }
+
+    private static string CapitalizeToken(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return token;
+        if (token.All(char.IsDigit)) return token;
+        if (token.Length == 1) return token.ToUpperInvariant();
+        return char.ToUpperInvariant(token[0]) + token[1..].ToLowerInvariant();
+    }
+
+    private static PackageDumpInfo ParsePackageDumpInfo(string dumpOutput)
+    {
+        var output = dumpOutput ?? "";
+
+        var info = new PackageDumpInfo
+        {
+            DisplayName = MatchPackageDumpValue(output, @"application-label(?:-[^:]+)?:\s*'?(?<v>[^'\r\n]+)'?"),
+            VersionName = MatchPackageDumpValue(output, @"versionName=(?<v>[^\r\n]+)"),
+            VersionCode = MatchPackageDumpValue(output, @"versionCode=(?<v>\d+)"),
+            CodePath = MatchPackageDumpValue(output, @"codePath=(?<v>[^\r\n]+)"),
+            FirstInstallTime = MatchPackageDumpValue(output, @"firstInstallTime=(?<v>[^\r\n]+)"),
+            LastUpdateTime = MatchPackageDumpValue(output, @"lastUpdateTime=(?<v>[^\r\n]+)")
+        };
+
+        return info;
+    }
+
+    private static string? MatchPackageDumpValue(string text, string pattern)
+    {
+        var match = Regex.Match(text, pattern, RegexOptions.IgnoreCase);
+        if (!match.Success) return null;
+        var value = match.Groups["v"].Value.Trim();
+        return string.IsNullOrWhiteSpace(value) ? null : value;
+    }
+
+    private static void ApplyPackageDumpInfo(ManagedApp app, PackageDumpInfo info)
+    {
+        if (!string.IsNullOrWhiteSpace(info.DisplayName)) app.DisplayName = info.DisplayName;
+        if (!string.IsNullOrWhiteSpace(info.VersionName)) app.VersionName = info.VersionName;
+        if (!string.IsNullOrWhiteSpace(info.VersionCode)) app.VersionCode = info.VersionCode;
+        if (!string.IsNullOrWhiteSpace(info.CodePath)) app.CodePath = info.CodePath;
+        if (!string.IsNullOrWhiteSpace(info.FirstInstallTime)) app.FirstInstallTime = info.FirstInstallTime;
+        if (!string.IsNullOrWhiteSpace(info.LastUpdateTime)) app.LastUpdateTime = info.LastUpdateTime;
+    }
+
+    private static HashSet<string> ParsePackageNames(string output)
+    {
+        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var lines = (output ?? "").Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines)
+        {
+            var raw = line.Trim();
+            if (!raw.StartsWith("package:", StringComparison.OrdinalIgnoreCase)) continue;
+            var packageName = raw["package:".Length..].Trim();
+            if (string.IsNullOrWhiteSpace(packageName)) continue;
+            names.Add(packageName);
+        }
+        return names;
+    }
+
+    private void ApplyManagedAppFilter()
+    {
+        var keyword = (AppSearchBox.Text ?? "").Trim();
+        var selectedPackage = (AppListBox.SelectedItem as ManagedApp)?.PackageName;
+
+        IEnumerable<ManagedApp> query = _managedAppsAll;
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            query = query.Where(x =>
+                x.PackageName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                x.DisplayName.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var filtered = query
+            .OrderBy(x => x.DisplayName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(x => x.PackageName, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        _managedApps.Clear();
+        foreach (var app in filtered) _managedApps.Add(app);
+
+        if (!string.IsNullOrWhiteSpace(selectedPackage))
+        {
+            AppListBox.SelectedItem = _managedApps.FirstOrDefault(x =>
+                x.PackageName.Equals(selectedPackage, StringComparison.OrdinalIgnoreCase));
+        }
+
+        UpdateAppManageActionButtons();
+    }
+
+    private bool TryGetSelectedManagedApp(out ManagedApp app)
+    {
+        if (AppListBox.SelectedItem is ManagedApp selected)
+        {
+            app = selected;
+            return true;
+        }
+
+        app = null!;
+        return false;
+    }
+
+    private async Task RefreshSelectedAppDetailsAsync()
+    {
+        if (!TryGetSelectedManagedApp(out var app)) return;
+        if (!_isDeviceReady || _isBusy) return;
+
+        if (app.IsLaunchable == null)
+        {
+            var resolveResult = await RunAdb($"shell cmd package resolve-activity --brief {app.PackageName}", logCommand: false, logOutput: false);
+            var combined = $"{resolveResult.StdOut}\n{resolveResult.StdErr}";
+            app.IsLaunchable = resolveResult.ExitCode == 0 &&
+                               combined.Contains("/", StringComparison.Ordinal) &&
+                               !combined.Contains("No activity", StringComparison.OrdinalIgnoreCase);
+        }
+
+        UpdateAppManageActionButtons();
+    }
+
+    private void UpdateAppManageActionButtons()
+    {
+        var hasSelection = TryGetSelectedManagedApp(out var app);
+        var canOperate = _isDeviceReady && !_isBusy;
+
+        AppRefreshButton.IsEnabled = !_isBusy;
+        AppIncludeSystemCheckBox.IsEnabled = !_isBusy;
+        AppSearchBox.IsEnabled = !_isBusy;
+        AppListBox.IsEnabled = !_isBusy;
+        AppLaunchButton.IsEnabled = canOperate && hasSelection;
+        AppUninstallButton.IsEnabled = canOperate && hasSelection;
+        AppCopyPackageButton.IsEnabled = hasSelection;
+        AppCountText.Text = $"应用数：{_managedApps.Count}";
+
+        if (!hasSelection)
+        {
+            AppSelectedPackageText.Text = "包名：-";
+            return;
+        }
+
+        var appType = app.IsOfficialApp ? "官方应用" : (app.IsSystemApp ? "系统应用" : "第三方应用");
+        var launchableText = app.IsLaunchable == null ? "检测中/未检测" : (app.IsLaunchable == true ? "可启动" : "无可启动入口");
+        AppSelectedPackageText.Text =
+            $"名称：{app.DisplayName}\n" +
+            $"包名：{app.PackageName}\n" +
+            $"类型：{appType}\n" +
+            $"版本：{app.VersionName} (code {app.VersionCode})\n" +
+            $"安装路径：{app.CodePath}\n" +
+            $"首次安装：{app.FirstInstallTime}\n" +
+            $"最后更新：{app.LastUpdateTime}\n" +
+            $"启动状态：{launchableText}";
+    }
 
     private async void ExpReadDisplay_Click(object sender, RoutedEventArgs e) => await ReadExperimentalDisplayInfoAsync(showNotice: true);
 
@@ -991,6 +1524,7 @@ public partial class MainWindow : Window
             var state = await GetDeviceState();
             if (!GuardDeviceState(state)) return;
             await RunAdb($"shell input text {EncodeForAdbInputText(text)}");
+            AddOperationHistory("输入", "发送文本", text.Length > 24 ? text[..24] + "..." : text, "成功");
         }
         finally
         {
@@ -1003,6 +1537,66 @@ public partial class MainWindow : Window
     private void CopyLog_Click(object sender, RoutedEventArgs e)
     {
         try { Clipboard.SetText(LogBox.Text ?? ""); } catch { }
+    }
+
+    private void ClearHistory_Click(object sender, RoutedEventArgs e) => _operationHistory.Clear();
+
+    private void CopyHistory_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var lines = _operationHistory.Select(x => $"{x.TimeText} {x.Category} {x.Action} {x.Target} {x.Result}");
+            Clipboard.SetText(string.Join(Environment.NewLine, lines));
+        }
+        catch { }
+    }
+
+    private void AddOperationHistory(string category, string action, string target, string result)
+    {
+        var entry = new OperationHistoryItem
+        {
+            TimeText = DateTime.Now.ToString("HH:mm:ss"),
+            Category = category,
+            Action = action,
+            Target = string.IsNullOrWhiteSpace(target) ? "-" : target,
+            Result = string.IsNullOrWhiteSpace(result) ? "-" : result
+        };
+        _operationHistory.Insert(0, entry);
+        while (_operationHistory.Count > 300)
+        {
+            _operationHistory.RemoveAt(_operationHistory.Count - 1);
+        }
+    }
+
+    private void SetAppRefreshProgress(bool visible, int current, int total, string message)
+    {
+        if (AppRefreshProgressPanel == null || AppRefreshProgressText == null || AppRefreshProgressValueText == null || AppRefreshProgressBar == null) return;
+
+        if (!visible)
+        {
+            AppRefreshProgressPanel.Visibility = Visibility.Collapsed;
+            AppRefreshProgressBar.Value = 0;
+            AppRefreshProgressText.Text = "";
+            AppRefreshProgressValueText.Text = "";
+            return;
+        }
+
+        AppRefreshProgressPanel.Visibility = Visibility.Visible;
+        AppRefreshProgressText.Text = string.IsNullOrWhiteSpace(message) ? "正在处理中..." : message;
+
+        if (total <= 0)
+        {
+            AppRefreshProgressBar.IsIndeterminate = true;
+            AppRefreshProgressValueText.Text = "";
+            return;
+        }
+
+        AppRefreshProgressBar.IsIndeterminate = false;
+        AppRefreshProgressBar.Minimum = 0;
+        AppRefreshProgressBar.Maximum = total;
+        AppRefreshProgressBar.Value = Math.Max(0, Math.Min(current, total));
+        var percent = (int)Math.Round((AppRefreshProgressBar.Value / total) * 100, MidpointRounding.AwayFromZero);
+        AppRefreshProgressValueText.Text = $"{current}/{total} ({percent}%)";
     }
 
     private const string AuthorUrl = "https://space.bilibili.com/1570010855";
@@ -1086,6 +1680,7 @@ public partial class MainWindow : Window
 
         _isQueueRunning = true;
         SetBusy(true, "正在处理安装队列...");
+        AddOperationHistory("安装", "安装队列", $"待处理 {_installQueue.Count(x => x.Status is QueuePending or QueueFailed)} 项", "开始");
         StartInstallProgress();
         UpdateQueueStats();
 
@@ -1108,6 +1703,7 @@ public partial class MainWindow : Window
             _isQueueRunning = false;
             SetBusy(false);
             UpdateQueueStats();
+            AddOperationHistory("安装", "安装队列", "全部任务", "完成");
             await RefreshStatus();
         }
     }
@@ -1152,6 +1748,7 @@ public partial class MainWindow : Window
         {
             item.MarkCompleted(true, DateTime.Now - startedAt, "安装成功", "-");
             _installSuccessCount++;
+            AddOperationHistory("安装", "安装APK", item.FileName, "成功");
         }
         else
         {
@@ -1161,6 +1758,7 @@ public partial class MainWindow : Window
             item.MarkCompleted(false, DateTime.Now - startedAt, reason, advice);
             AppendLog($"[Install] 失败原因: {reason}");
             AppendLog($"[Install] 建议处理: {advice}");
+            AddOperationHistory("安装", "安装APK", item.FileName, $"失败（{reason}）");
         }
 
         UpdateInstallStats();
@@ -1407,6 +2005,7 @@ public partial class MainWindow : Window
     {
         _isDeviceReady = enabled;
         UpdateQueueActionButtons();
+        UpdateAppManageActionButtons();
         if (SendTextButton != null) SendTextButton.IsEnabled = enabled && !_isBusy;
     }
 
@@ -1491,7 +2090,7 @@ public partial class MainWindow : Window
         AppendLog($"[Log] Log file: {_logFilePath}");
     }
 
-    private async Task<(int ExitCode, string StdOut, string StdErr)> RunAdb(string args, bool logCommand = true)
+    private async Task<(int ExitCode, string StdOut, string StdErr)> RunAdb(string args, bool logCommand = true, bool logOutput = true)
     {
         if (logCommand) AppendLog($"> adb {args}");
 
@@ -1513,8 +2112,8 @@ public partial class MainWindow : Window
         var stdErr = await p.StandardError.ReadToEndAsync();
         await p.WaitForExitAsync();
 
-        if (!string.IsNullOrWhiteSpace(stdOut)) AppendLog(stdOut.TrimEnd());
-        if (!string.IsNullOrWhiteSpace(stdErr)) AppendLog(stdErr.TrimEnd());
+        if (logOutput && !string.IsNullOrWhiteSpace(stdOut)) AppendLog(stdOut.TrimEnd());
+        if (logOutput && !string.IsNullOrWhiteSpace(stdErr)) AppendLog(stdErr.TrimEnd());
         AppendLog($"(exit={p.ExitCode})");
         AppendLog("");
         return (p.ExitCode, stdOut, stdErr);
@@ -1669,8 +2268,14 @@ public partial class MainWindow : Window
         if (ExpRefresh120Button != null) ExpRefresh120Button.IsEnabled = !isBusy;
         if (ClearLogButton != null) ClearLogButton.IsEnabled = !isBusy;
         if (CopyLogButton != null) CopyLogButton.IsEnabled = !isBusy;
+        if (ClearHistoryButton != null) ClearHistoryButton.IsEnabled = !isBusy;
+        if (CopyHistoryButton != null) CopyHistoryButton.IsEnabled = !isBusy;
         if (AuthorButton != null) AuthorButton.IsEnabled = !isBusy;
         if (ToggleLogButton != null) ToggleLogButton.IsEnabled = !isBusy;
+        if (AppRefreshButton != null) AppRefreshButton.IsEnabled = !isBusy;
+        if (AppIncludeSystemCheckBox != null) AppIncludeSystemCheckBox.IsEnabled = !isBusy;
+        if (AppSearchBox != null) AppSearchBox.IsEnabled = !isBusy;
+        if (AppListBox != null) AppListBox.IsEnabled = !isBusy;
 
         if (BusyText != null)
         {
@@ -1679,6 +2284,7 @@ public partial class MainWindow : Window
         }
 
         UpdateQueueActionButtons();
+        UpdateAppManageActionButtons();
         Cursor = isBusy ? Cursors.Wait : Cursors.Arrow;
     }
 
@@ -1783,8 +2389,9 @@ public partial class MainWindow : Window
                 RootLayoutGrid.Margin = new Thickness(8);
                 SetControlHeight(32, RefreshButton, RestartButton, GuideButton, OpenLogButton, CheckUpdateButton,
                     PickApkButton, InstallApkButton, SendTextButton, AddQueueButton, StartQueueButton,
-                    ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton);
-                SetControlHeight(32, ApkPathBox, InputTextBox);
+                    ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton, ClearHistoryButton, CopyHistoryButton,
+                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton);
+                SetControlHeight(32, ApkPathBox, InputTextBox, AppSearchBox);
                 SetInstallColumns(1.0, 1.0);
                 QueueListBox.Height = 96;
                 LogBox.MaxHeight = 140;
@@ -1795,8 +2402,9 @@ public partial class MainWindow : Window
                 RootLayoutGrid.Margin = new Thickness(10);
                 SetControlHeight(34, RefreshButton, RestartButton, GuideButton, OpenLogButton, CheckUpdateButton,
                     PickApkButton, InstallApkButton, SendTextButton, AddQueueButton, StartQueueButton,
-                    ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton);
-                SetControlHeight(34, ApkPathBox, InputTextBox);
+                    ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton, ClearHistoryButton, CopyHistoryButton,
+                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton);
+                SetControlHeight(34, ApkPathBox, InputTextBox, AppSearchBox);
                 SetInstallColumns(1.15, 1.0);
                 QueueListBox.Height = 108;
                 LogBox.MaxHeight = 160;
@@ -1807,8 +2415,9 @@ public partial class MainWindow : Window
                 RootLayoutGrid.Margin = new Thickness(14);
                 SetControlHeight(36, RefreshButton, RestartButton, GuideButton, OpenLogButton, CheckUpdateButton,
                     PickApkButton, InstallApkButton, SendTextButton, AddQueueButton, StartQueueButton,
-                    ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton);
-                SetControlHeight(36, ApkPathBox, InputTextBox);
+                    ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton, ClearHistoryButton, CopyHistoryButton,
+                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton);
+                SetControlHeight(36, ApkPathBox, InputTextBox, AppSearchBox);
                 SetInstallColumns(1.35, 0.95);
                 QueueListBox.Height = 116;
                 LogBox.MaxHeight = 180;
