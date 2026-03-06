@@ -224,6 +224,9 @@ public partial class MainWindow : Window
     private bool _navIntroPlayed;
     private ResponsiveTier _responsiveTier = ResponsiveTier.Wide;
     private UpdateManifest? _latestUpdate;
+    private Process? _screenRecordProcess;
+    private string? _screenRecordRemotePath;
+    private string? _screenRecordFileName;
 
     private DispatcherTimer? _installProgressTimer;
     private DispatcherTimer? _noticeTimer;
@@ -270,6 +273,13 @@ public partial class MainWindow : Window
     private System.Windows.Controls.TextBlock DeviceAndroidText => DevicePageHost.DeviceAndroidTextControl;
     private System.Windows.Controls.TextBlock DeviceBatteryText => DevicePageHost.DeviceBatteryTextControl;
     private System.Windows.Controls.TextBlock DeviceStorageText => DevicePageHost.DeviceStorageTextControl;
+    private System.Windows.Controls.Button ExpCaptureScreenButton => DevicePageHost.ExpCaptureScreenButtonControl;
+    private System.Windows.Controls.Button ExpStartRecordButton => DevicePageHost.ExpStartRecordButtonControl;
+    private System.Windows.Controls.Button ExpStopRecordButton => DevicePageHost.ExpStopRecordButtonControl;
+    private System.Windows.Controls.TextBlock ExpRecordStateText => DevicePageHost.ExpRecordStateTextControl;
+    private System.Windows.Controls.TextBox ExpAutomationScriptBox => DevicePageHost.ExpAutomationScriptBoxControl;
+    private System.Windows.Controls.Button ExpRunAutomationButton => DevicePageHost.ExpRunAutomationButtonControl;
+    private System.Windows.Controls.Button ExpFillAutomationTemplateButton => DevicePageHost.ExpFillAutomationTemplateButtonControl;
 
     private System.Windows.Controls.Border InstallCardBorder => InstallPageHost.InstallCardBorderControl;
     private System.Windows.Controls.ColumnDefinition InstallLeftColumn => InstallPageHost.InstallLeftColumnControl;
@@ -378,6 +388,8 @@ public partial class MainWindow : Window
         ResetDeviceInfo();
         SetStatusDot("idle");
         UpdateLogPanelState();
+        ExpAutomationScriptBox.Text = "";
+        UpdateScreenRecordStateUi();
         InitLogFile();
         ShowFirstRunTip();
         ApplyResponsiveLayout();
@@ -638,6 +650,11 @@ public partial class MainWindow : Window
         CheckUpdateButton.Click += CheckUpdate_Click;
         DeviceInfoScrollLeftButton.Click += DeviceInfoScrollLeft_Click;
         DeviceInfoScrollRightButton.Click += DeviceInfoScrollRight_Click;
+        ExpCaptureScreenButton.Click += ExpCaptureScreen_Click;
+        ExpStartRecordButton.Click += ExpStartRecord_Click;
+        ExpStopRecordButton.Click += ExpStopRecord_Click;
+        ExpRunAutomationButton.Click += ExpRunAutomation_Click;
+        ExpFillAutomationTemplateButton.Click += ExpFillAutomationTemplate_Click;
 
         InstallCardBorder.PreviewDragOver += InstallArea_PreviewDragOver;
         InstallCardBorder.DragLeave += InstallArea_DragLeave;
@@ -1243,6 +1260,198 @@ public partial class MainWindow : Window
         await ApplyRefreshRateAsync(120);
     }
 
+    private async void ExpCaptureScreen_Click(object sender, RoutedEventArgs e)
+    {
+        SetBusy(true, "正在截图...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+
+            var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var fileName = $"quest_capture_{stamp}.png";
+            var remotePath = $"/sdcard/Download/{fileName}";
+            var localDir = EnsureMediaOutputDirectory(Environment.SpecialFolder.MyPictures);
+            var localPath = Path.Combine(localDir, fileName);
+
+            var capture = await RunAdb($"shell screencap -p {remotePath}");
+            if (capture.ExitCode != 0)
+            {
+                ShowNotice("截图失败，请查看日志。", "warn");
+                AddOperationHistory("屏幕", "截图", fileName, "失败");
+                return;
+            }
+
+            var pull = await RunAdb($"pull {remotePath} \"{localPath}\"");
+            await RunAdb($"shell rm {remotePath}", logOutput: false);
+            if (pull.ExitCode != 0)
+            {
+                ShowNotice("截图已生成但拉取失败，请检查存储权限。", "warn");
+                AddOperationHistory("屏幕", "截图", fileName, "拉取失败");
+                return;
+            }
+
+            ShowNotice($"截图已保存到：{localPath}", "info");
+            AddOperationHistory("屏幕", "截图", fileName, "成功");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async void ExpStartRecord_Click(object sender, RoutedEventArgs e)
+    {
+        if (_screenRecordRemotePath != null)
+        {
+            ShowNotice("已有录屏会话，请先停止并保存。", "warn");
+            return;
+        }
+
+        SetBusy(true, "正在启动录屏...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+
+            var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            _screenRecordFileName = $"quest_record_{stamp}.mp4";
+            _screenRecordRemotePath = $"/sdcard/Download/{_screenRecordFileName}";
+
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = AdbPath,
+                    Arguments = $"shell screenrecord --time-limit 180 {_screenRecordRemotePath}",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                },
+                EnableRaisingEvents = true
+            };
+            process.Exited += (_, __) =>
+            {
+                Dispatcher.Invoke(UpdateScreenRecordStateUi);
+            };
+
+            if (!process.Start())
+            {
+                _screenRecordRemotePath = null;
+                _screenRecordFileName = null;
+                ShowNotice("录屏进程启动失败。", "error");
+                return;
+            }
+
+            _screenRecordProcess = process;
+            AddOperationHistory("屏幕", "开始录屏", _screenRecordFileName ?? "-", "成功");
+            ShowNotice("录屏已开始（最长 180 秒），完成后点“停止并保存”。", "info");
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
+    private async void ExpStopRecord_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_screenRecordRemotePath) || string.IsNullOrWhiteSpace(_screenRecordFileName))
+        {
+            ShowNotice("当前没有可保存的录屏会话。", "warn");
+            UpdateScreenRecordStateUi();
+            return;
+        }
+
+        SetBusy(true, "正在停止录屏并拉取文件...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+
+            if (_screenRecordProcess != null && !_screenRecordProcess.HasExited)
+            {
+                try
+                {
+                    _screenRecordProcess.Kill();
+                    await _screenRecordProcess.WaitForExitAsync();
+                }
+                catch { }
+            }
+
+            var localDir = EnsureMediaOutputDirectory(Environment.SpecialFolder.MyVideos);
+            var localPath = Path.Combine(localDir, _screenRecordFileName);
+            var pull = await RunAdb($"pull {_screenRecordRemotePath} \"{localPath}\"");
+            await RunAdb($"shell rm {_screenRecordRemotePath}", logOutput: false);
+
+            if (pull.ExitCode == 0)
+            {
+                ShowNotice($"录屏已保存到：{localPath}", "info");
+                AddOperationHistory("屏幕", "停止录屏", _screenRecordFileName, "成功");
+            }
+            else
+            {
+                ShowNotice("录屏拉取失败，请查看日志。", "warn");
+                AddOperationHistory("屏幕", "停止录屏", _screenRecordFileName, "失败");
+            }
+        }
+        finally
+        {
+            _screenRecordProcess?.Dispose();
+            _screenRecordProcess = null;
+            _screenRecordRemotePath = null;
+            _screenRecordFileName = null;
+            SetBusy(false);
+        }
+    }
+
+    private void ExpFillAutomationTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        ExpAutomationScriptBox.Text = BuildDefaultAutomationTemplate();
+        ShowNotice("已填充通用自动化模板。", "info");
+    }
+
+    private async void ExpRunAutomation_Click(object sender, RoutedEventArgs e)
+    {
+        var script = ExpAutomationScriptBox.Text ?? "";
+        var lines = script.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None)
+            .Select(x => x.Trim())
+            .Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#", StringComparison.Ordinal))
+            .ToList();
+
+        if (lines.Count == 0)
+        {
+            ShowNotice("脚本为空，请至少填写一条命令。", "warn");
+            return;
+        }
+
+        SetBusy(true, $"正在执行自动化脚本（{lines.Count} 条）...");
+        try
+        {
+            if (!await EnsureExperimentReadyAsync()) return;
+
+            var successCount = 0;
+            for (var i = 0; i < lines.Count; i++)
+            {
+                var rawLine = lines[i];
+                var args = NormalizeAutomationAdbArgs(rawLine);
+                var result = await RunAdb(args);
+                if (result.ExitCode != 0)
+                {
+                    AddOperationHistory("自动化", "执行脚本", $"第 {i + 1} 条", "失败");
+                    ShowNotice($"脚本在第 {i + 1} 条失败：{rawLine}", "warn");
+                    return;
+                }
+                successCount++;
+            }
+
+            AddOperationHistory("自动化", "执行脚本", $"{successCount} 条命令", "成功");
+            ShowNotice($"自动化脚本执行完成（成功 {successCount} 条）。", "info");
+            await ReadExperimentalDisplayInfoAsync(showNotice: false);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
+    }
+
     private async Task ApplyRefreshRateAsync(double hz)
     {
         SetBusy(true, "正在应用刷新率...");
@@ -1339,6 +1548,53 @@ public partial class MainWindow : Window
             return "系统默认";
         }
         return text;
+    }
+
+    private static string NormalizeAutomationAdbArgs(string rawLine)
+    {
+        var line = rawLine.Trim();
+        if (line.StartsWith("adb ", StringComparison.OrdinalIgnoreCase))
+        {
+            return line[4..].Trim();
+        }
+
+        if (line.StartsWith("shell ", StringComparison.OrdinalIgnoreCase) ||
+            line.StartsWith("pull ", StringComparison.OrdinalIgnoreCase) ||
+            line.StartsWith("push ", StringComparison.OrdinalIgnoreCase) ||
+            line.StartsWith("install ", StringComparison.OrdinalIgnoreCase) ||
+            line.StartsWith("uninstall ", StringComparison.OrdinalIgnoreCase))
+        {
+            return line;
+        }
+
+        return $"shell {line}";
+    }
+
+    private static string BuildDefaultAutomationTemplate()
+        => "# 通用模板\ngetprop ro.product.model\ngetprop ro.build.version.release\ndumpsys battery\ninput keyevent KEYCODE_HOME";
+
+    private static string EnsureMediaOutputDirectory(Environment.SpecialFolder folder)
+    {
+        var root = Environment.GetFolderPath(folder);
+        var path = Path.Combine(root, "QuestADBTool");
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private void UpdateScreenRecordStateUi()
+    {
+        var hasSession = !string.IsNullOrWhiteSpace(_screenRecordRemotePath);
+        var running = _screenRecordProcess != null && !_screenRecordProcess.HasExited;
+
+        if (ExpCaptureScreenButton != null) ExpCaptureScreenButton.IsEnabled = !_isBusy;
+        if (ExpStartRecordButton != null) ExpStartRecordButton.IsEnabled = !_isBusy && !hasSession;
+        if (ExpStopRecordButton != null) ExpStopRecordButton.IsEnabled = !_isBusy && hasSession;
+        if (ExpRecordStateText != null)
+        {
+            ExpRecordStateText.Text = !hasSession
+                ? "录屏状态：未开始"
+                : (running ? "录屏状态：录制中（最长 180 秒）" : "录屏状态：录制结束，等待保存");
+        }
     }
 
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e) => ApplyResponsiveLayout();
@@ -2266,6 +2522,9 @@ public partial class MainWindow : Window
         if (ExpApplyRefreshButton != null) ExpApplyRefreshButton.IsEnabled = !isBusy;
         if (ExpRefresh90Button != null) ExpRefresh90Button.IsEnabled = !isBusy;
         if (ExpRefresh120Button != null) ExpRefresh120Button.IsEnabled = !isBusy;
+        if (ExpRunAutomationButton != null) ExpRunAutomationButton.IsEnabled = !isBusy;
+        if (ExpFillAutomationTemplateButton != null) ExpFillAutomationTemplateButton.IsEnabled = !isBusy;
+        if (ExpAutomationScriptBox != null) ExpAutomationScriptBox.IsEnabled = !isBusy;
         if (ClearLogButton != null) ClearLogButton.IsEnabled = !isBusy;
         if (CopyLogButton != null) CopyLogButton.IsEnabled = !isBusy;
         if (ClearHistoryButton != null) ClearHistoryButton.IsEnabled = !isBusy;
@@ -2285,6 +2544,7 @@ public partial class MainWindow : Window
 
         UpdateQueueActionButtons();
         UpdateAppManageActionButtons();
+        UpdateScreenRecordStateUi();
         Cursor = isBusy ? Cursors.Wait : Cursors.Arrow;
     }
 
@@ -2390,7 +2650,9 @@ public partial class MainWindow : Window
                 SetControlHeight(32, RefreshButton, RestartButton, GuideButton, OpenLogButton, CheckUpdateButton,
                     PickApkButton, InstallApkButton, SendTextButton, AddQueueButton, StartQueueButton,
                     ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton, ClearHistoryButton, CopyHistoryButton,
-                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton);
+                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton,
+                    ExpCaptureScreenButton, ExpStartRecordButton, ExpStopRecordButton,
+                    ExpRunAutomationButton, ExpFillAutomationTemplateButton);
                 SetControlHeight(32, ApkPathBox, InputTextBox, AppSearchBox);
                 SetInstallColumns(1.0, 1.0);
                 QueueListBox.Height = 96;
@@ -2403,7 +2665,9 @@ public partial class MainWindow : Window
                 SetControlHeight(34, RefreshButton, RestartButton, GuideButton, OpenLogButton, CheckUpdateButton,
                     PickApkButton, InstallApkButton, SendTextButton, AddQueueButton, StartQueueButton,
                     ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton, ClearHistoryButton, CopyHistoryButton,
-                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton);
+                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton,
+                    ExpCaptureScreenButton, ExpStartRecordButton, ExpStopRecordButton,
+                    ExpRunAutomationButton, ExpFillAutomationTemplateButton);
                 SetControlHeight(34, ApkPathBox, InputTextBox, AppSearchBox);
                 SetInstallColumns(1.15, 1.0);
                 QueueListBox.Height = 108;
@@ -2416,7 +2680,9 @@ public partial class MainWindow : Window
                 SetControlHeight(36, RefreshButton, RestartButton, GuideButton, OpenLogButton, CheckUpdateButton,
                     PickApkButton, InstallApkButton, SendTextButton, AddQueueButton, StartQueueButton,
                     ClearQueueButton, RetryFailedButton, RemoveSelectedButton, AuthorButton, ClearLogButton, CopyLogButton, ClearHistoryButton, CopyHistoryButton,
-                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton);
+                    AppRefreshButton, AppLaunchButton, AppUninstallButton, AppCopyPackageButton,
+                    ExpCaptureScreenButton, ExpStartRecordButton, ExpStopRecordButton,
+                    ExpRunAutomationButton, ExpFillAutomationTemplateButton);
                 SetControlHeight(36, ApkPathBox, InputTextBox, AppSearchBox);
                 SetInstallColumns(1.35, 0.95);
                 QueueListBox.Height = 116;

@@ -1,0 +1,11 @@
+﻿{
+  "version": "0.5.1",
+  "title": "QTool v0.5.1",
+  "notes": "1) 设备页新增屏幕工具：支持截图、录屏开始/停止并保存到本地。\n2) 自动化脚本改为用户自定义输入，支持逐行执行命令。\n3) 移除显示预设，通用模板不再包含 hz/size 命令。\n4) 修复检测更新说明只能显示两行的问题。",
+  "published_at": "2026-03-06T21:00:00+08:00",
+  "downloads": {
+    "github_url": "https://github.com/sagaciouness/QuestADBTool/releases/download/v0.5.1/QuestADBTool_0.5.1.zip",
+    "baidu_url": "https://pan.baidu.com/s/1RdlqXgunwhcKShGrqg5qfg?pwd=1212",
+    "baidu_code": "1212"
+  }
+}

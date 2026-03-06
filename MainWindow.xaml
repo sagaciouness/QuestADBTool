@@ -166,7 +166,7 @@
                             <Grid>
                                 <Border x:Name="NavDeviceIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavDeviceIcon" Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavDeviceIcon" Text="&#xE773;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
                                     <TextBlock x:Name="NavDeviceText" Text="设备" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
@@ -180,7 +180,7 @@
                             <Grid>
                                 <Border x:Name="NavInstallIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavInstallIcon" Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavInstallIcon" Text="&#xE7ac;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
                                     <TextBlock x:Name="NavInstallText" Text="安装" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
@@ -194,7 +194,7 @@
                             <Grid>
                                 <Border x:Name="NavAppsIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavAppsIcon" Text="&#xE71D;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavAppsIcon" Text="&#xE74C;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
                                     <TextBlock x:Name="NavAppsText" Text="应用" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
@@ -208,7 +208,7 @@
                             <Grid>
                                 <Border x:Name="NavLogIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavLogIcon" Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavLogIcon" Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
                                     <TextBlock x:Name="NavLogText" Text="日志" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
@@ -222,7 +222,7 @@
                             <Grid>
                                 <Border x:Name="NavAboutIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavAboutIcon" Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavAboutIcon" Text="&#xE730;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
                                     <TextBlock x:Name="NavAboutText" Text="实验" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
@@ -241,7 +241,7 @@
 
                         <Border Background="#E1E1E4" CornerRadius="6" Padding="6" HorizontalAlignment="Left">
                             <Button x:Name="NavBilibiliButton" Width="28" Height="28" Style="{StaticResource NavRailItemButtonStyle}" ToolTip="哔哩哔哩" Click="OpenAuthor_Click">
-                                <TextBlock Text="&#xE8A7;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#7F8086" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#xE8f2;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#7F8086" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
                         </Border>
 
@@ -279,7 +279,7 @@
                         </DockPanel>
                         <TextBlock x:Name="UpdatePublishedText" Margin="0,4,0,0" Foreground="{StaticResource TextDim}" Text="发布时间：-"/>
                         <Border Margin="0,6,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="8" Padding="10,6">
-                            <TextBlock x:Name="UpdateNotesText" MaxHeight="56" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="更新内容：-"/>
+                            <TextBlock x:Name="UpdateNotesText" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="更新内容：-"/>
                         </Border>
                         <WrapPanel Margin="0,8,0,0">
                             <Button x:Name="UpdateGithubButton" Height="36" Content="GitHub 下载" Click="UpdateGithub_Click" Style="{DynamicResource PrimaryButton}" Margin="0,0,8,0"/>
@@ -297,9 +297,7 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <TextBlock Text="实验功能" FontSize="14" FontWeight="SemiBold"/>
-                                <TextBlock Text="实验功能（非官方）" Margin="0,8,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
-                                <TextBlock Text="可能被系统还原" Margin="0,2,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
-                                <TextBlock Text="不同版本行为不同" Margin="0,2,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                                <TextBlock Text="实验功能（非官方） 可能被系统还原 不同版本行为不同" Margin="0,8,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
 
                                 <Border Margin="0,12,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                                     <StackPanel>
@@ -356,6 +354,7 @@
                                         </Grid>
                                     </StackPanel>
                                 </Border>
+
                             </StackPanel>
                         </ScrollViewer>
                     </Border>

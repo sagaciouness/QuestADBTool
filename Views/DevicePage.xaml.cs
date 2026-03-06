@@ -29,4 +29,13 @@ public partial class DevicePage : UserControl
     public TextBlock DeviceAndroidTextControl => DeviceAndroidText;
     public TextBlock DeviceBatteryTextControl => DeviceBatteryText;
     public TextBlock DeviceStorageTextControl => DeviceStorageText;
+
+    public Button ExpCaptureScreenButtonControl => ExpCaptureScreenButton;
+    public Button ExpStartRecordButtonControl => ExpStartRecordButton;
+    public Button ExpStopRecordButtonControl => ExpStopRecordButton;
+    public TextBlock ExpRecordStateTextControl => ExpRecordStateText;
+
+    public TextBox ExpAutomationScriptBoxControl => ExpAutomationScriptBox;
+    public Button ExpRunAutomationButtonControl => ExpRunAutomationButton;
+    public Button ExpFillAutomationTemplateButtonControl => ExpFillAutomationTemplateButton;
 }
