@@ -1,10 +1,10 @@
 ﻿{
-  "version": "0.5.1",
-  "title": "QTool v0.5.1",
-  "notes": "1) 设备页新增屏幕工具：支持截图、录屏开始/停止并保存到本地。\n2) 自动化脚本改为用户自定义输入，支持逐行执行命令。\n3) 移除显示预设，通用模板不再包含 hz/size 命令。\n4) 修复检测更新说明只能显示两行的问题。",
-  "published_at": "2026-03-06T21:00:00+08:00",
+  "version": "0.5.2",
+  "title": "QTool v0.5.2",
+  "notes": "1) 黑夜/浅色主题切换改为动态资源，功能区、文本、边框可实时同步刷新。\n2) 修复侧栏底部按钮在收起状态显示不完整、未居中与展开后位移问题。\n3) 侧栏展开宽度优化，减少约三分之一，提升主内容区可用空间。\n4) 启动遮罩与导航控件配色统一，深色层次更接近目标视觉效果。",
+  "published_at": "2026-03-13T16:30:00+08:00",
   "downloads": {
-    "github_url": "https://github.com/sagaciouness/QuestADBTool/releases/download/v0.5.1/QuestADBTool_0.5.1.zip",
+    "github_url": "https://github.com/sagaciouness/QuestADBTool/releases/download/v0.5.2/QuestADBTool_0.5.2.zip",
     "baidu_url": "https://pan.baidu.com/s/1RdlqXgunwhcKShGrqg5qfg?pwd=1212",
     "baidu_code": "1212"
   }

@@ -18,14 +18,14 @@
                     <ColumnDefinition Width="1.75*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="12" Padding="14,12">
+                <Border Grid.Column="0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="12" Padding="14,12">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Ellipse x:Name="StatusDot" Width="12" Height="12" Fill="#9CA3AF" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <Ellipse x:Name="StatusDot" Width="12" Height="12" Fill="{DynamicResource TextDim}" Margin="0,0,8,0" VerticalAlignment="Center"/>
                             <TextBlock Text="设备连接" FontSize="15" FontWeight="SemiBold"/>
                         </StackPanel>
-                        <TextBlock x:Name="StatusText" Text="正在检测..." Foreground="{StaticResource TextDim}" Margin="0,8,0,0" FontSize="14"/>
-                        <TextBlock x:Name="StatusHintText" Text="请保持头显已开机并连接数据线" Foreground="{StaticResource TextDim}" Opacity="0.82" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="StatusText" Text="正在检测..." Foreground="{DynamicResource TextDim}" Margin="0,8,0,0" FontSize="14"/>
+                        <TextBlock x:Name="StatusHintText" Text="请保持头显已开机并连接数据线" Foreground="{DynamicResource TextDim}" Opacity="0.82" FontSize="12" Margin="0,6,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
@@ -43,8 +43,8 @@
                         <Button x:Name="OpenLogButton" Content="打开问题日志" Height="44" Margin="0,0,0,8" Style="{DynamicResource FluentButton}"/>
                     </WrapPanel>
 
-                    <Border Grid.Row="1" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10,8">
-                        <TextBlock Foreground="{StaticResource TextDim}" TextWrapping="Wrap" Text="提示：首次连接若提示需要授权，请先戴上头显点击“允许 USB 调试”；如遇 offline，优先主板 USB 2.0 Type-A 接口。"/>
+                    <Border Grid.Row="1" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10,8">
+                        <TextBlock Foreground="{DynamicResource TextDim}" TextWrapping="Wrap" Text="提示：首次连接若提示需要授权，请先戴上头显点击“允许 USB 调试”；如遇 offline，优先主板 USB 2.0 Type-A 接口。"/>
                     </Border>
                 </Grid>
             </Grid>
@@ -65,24 +65,24 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <TextBlock x:Name="DeviceSerialText" Text="设备序列号：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        <Border Grid.Row="0" Grid.Column="0" Margin="0,0,10,10" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceSerialText" Text="设备序列号：-" Foreground="{DynamicResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Border>
-                        <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,10" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <TextBlock x:Name="DeviceModelText" Text="设备型号：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        <Border Grid.Row="0" Grid.Column="1" Margin="0,0,10,10" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceModelText" Text="设备型号：-" Foreground="{DynamicResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Border>
-                        <Border Grid.Row="0" Grid.Column="2" Margin="0,0,0,10" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <TextBlock x:Name="DeviceAndroidText" Text="Android：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        <Border Grid.Row="0" Grid.Column="2" Margin="0,0,0,10" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceAndroidText" Text="Android：-" Foreground="{DynamicResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Border>
 
-                        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <TextBlock x:Name="DeviceBatteryText" Text="电量：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        <Border Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceBatteryText" Text="电量：-" Foreground="{DynamicResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Border>
-                        <Border Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <TextBlock x:Name="DeviceStorageText" Text="存储：-" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                        <Border Grid.Row="1" Grid.Column="1" Margin="0,0,10,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock x:Name="DeviceStorageText" Text="存储：-" Foreground="{DynamicResource TextDim}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                         </Border>
-                        <Border Grid.Row="1" Grid.Column="2" Margin="0,0,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                            <TextBlock Foreground="{StaticResource TextDim}" Text="连接方式：USB 调试"/>
+                        <Border Grid.Row="1" Grid.Column="2" Margin="0,0,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <TextBlock Foreground="{DynamicResource TextDim}" Text="连接方式：USB 调试"/>
                         </Border>
                     </Grid>
                 </ScrollViewer>
@@ -95,24 +95,24 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                <Border Grid.Column="0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                     <StackPanel>
                         <TextBlock Text="屏幕工具" FontWeight="SemiBold"/>
-                        <TextBlock Text="截图会保存到“图片\\QuestADBTool”，录屏会保存到“视频\\QuestADBTool”。" Margin="0,6,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                        <TextBlock Text="截图会保存到“图片\\QuestADBTool”，录屏会保存到“视频\\QuestADBTool”。" Margin="0,6,0,0" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
                         <WrapPanel Margin="0,8,0,0">
                             <Button x:Name="ExpCaptureScreenButton" Height="34" Content="截图并保存" Style="{DynamicResource PrimaryButton}"/>
                             <Button x:Name="ExpStartRecordButton" Height="34" Margin="8,0,0,0" Content="开始录屏" Style="{DynamicResource FluentButton}"/>
                             <Button x:Name="ExpStopRecordButton" Height="34" Margin="8,0,0,0" Content="停止并保存" Style="{DynamicResource FluentButton}"/>
                         </WrapPanel>
-                        <TextBlock x:Name="ExpRecordStateText" Margin="0,8,0,0" Foreground="{StaticResource TextDim}" Text="录屏状态：未开始"/>
+                        <TextBlock x:Name="ExpRecordStateText" Margin="0,8,0,0" Foreground="{DynamicResource TextDim}" Text="录屏状态：未开始"/>
                     </StackPanel>
                 </Border>
 
                 <StackPanel Grid.Column="2">
-                    <Border Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                    <Border Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                         <StackPanel>
                             <TextBlock Text="用户自定义脚本（逐行执行）" FontWeight="SemiBold"/>
-                            <TextBlock Text="每行一条命令；默认按 shell 子命令执行。以 # 开头的行会被忽略。你可以按自己的流程自由编辑。" Margin="0,6,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                            <TextBlock Text="每行一条命令；默认按 shell 子命令执行。以 # 开头的行会被忽略。你可以按自己的流程自由编辑。" Margin="0,6,0,0" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
                             <TextBox x:Name="ExpAutomationScriptBox"
                                      Margin="0,8,0,0"
                                      Height="96"
@@ -132,3 +132,5 @@
         </Grid>
     </Border>
 </UserControl>
+
+

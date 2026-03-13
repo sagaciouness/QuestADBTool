@@ -42,10 +42,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Root" Property="Background" Value="{StaticResource NavItemHoverBrush}"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource NavItemHoverBrush}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Root" Property="Background" Value="{StaticResource NavItemActiveBrush}"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource NavItemActiveBrush}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.5"/>
@@ -60,7 +60,7 @@
             <Setter Property="Width" Value="44"/>
             <Setter Property="Height" Value="36"/>
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextDim}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
@@ -74,10 +74,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#E5E7EB"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#D1D5DB"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Border}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -92,7 +92,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#F3F4F6" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+        <Border x:Name="TitleBarBorder" Grid.Row="0" Background="#F3F4F6" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -101,7 +101,7 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" shell:WindowChrome.IsHitTestVisibleInChrome="True">
                     <Button x:Name="MinButton" Style="{StaticResource TitleButtonStyle}" Click="MinButton_Click" Content="&#xE921;"/>
                     <Button x:Name="MaxRestoreButton" Style="{StaticResource TitleButtonStyle}" Click="MaxRestoreButton_Click" Content="&#xE922;"/>
-                    <Button x:Name="CloseButton" Width="46" Height="36" Click="CloseButton_Click" BorderThickness="0" Cursor="Hand" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="#6B7280">
+                    <Button x:Name="CloseButton" Width="46" Height="36" Click="CloseButton_Click" BorderThickness="0" Cursor="Hand" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="{DynamicResource TextDim}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border x:Name="Bd" Background="{TemplateBinding Background}">
@@ -131,7 +131,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border x:Name="NavRail" Grid.Column="0" Width="56" Background="{StaticResource NavRailBgBrush}" BorderBrush="{StaticResource NavRailBorderBrush}" BorderThickness="1" CornerRadius="0" Padding="0" MouseEnter="NavRail_MouseEnter" MouseLeave="NavRail_MouseLeave">
+            <Border x:Name="NavRail" Grid.Column="0" Width="56" Background="{DynamicResource NavRailBgBrush}" BorderBrush="{DynamicResource NavRailBorderBrush}" BorderThickness="1" CornerRadius="0" Padding="0" MouseEnter="NavRail_MouseEnter" MouseLeave="NavRail_MouseLeave">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -148,12 +148,12 @@
                                    SnapsToDevicePixels="True"/>
                         </Border>
                         <StackPanel VerticalAlignment="Top" Margin="0,0,0,0">
-                            <TextBlock x:Name="NavBrandTextA" Text="QTool" Margin="16,0,0,0" FontSize="26" FontWeight="Black" Foreground="#141416" Opacity="0" Visibility="Collapsed">
+                            <TextBlock x:Name="NavBrandTextA" Text="QTool" Margin="16,0,0,0" FontSize="26" FontWeight="Black" Foreground="{DynamicResource Text}" Opacity="0" Visibility="Collapsed">
                                 <TextBlock.RenderTransform>
                                     <TranslateTransform X="8"/>
                                 </TextBlock.RenderTransform>
                             </TextBlock>
-                            <TextBlock x:Name="NavBrandTextB" Text="Quest ADB 工具" Margin="16,-3,0,0" FontSize="10" FontWeight="Bold" Foreground="#2A2A2D" Opacity="0" Visibility="Collapsed">
+                            <TextBlock x:Name="NavBrandTextB" Text="Quest ADB 工具" Margin="16,-3,0,0" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource TextDim}" Opacity="0" Visibility="Collapsed">
                                 <TextBlock.RenderTransform>
                                     <TranslateTransform X="8"/>
                                 </TextBlock.RenderTransform>
@@ -166,8 +166,8 @@
                             <Grid>
                                 <Border x:Name="NavDeviceIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavDeviceIcon" Text="&#xE773;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
-                                    <TextBlock x:Name="NavDeviceText" Text="设备" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NavDeviceIcon" Text="&#xE773;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{DynamicResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavDeviceText" Text="设备" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{DynamicResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
                                         </TextBlock.RenderTransform>
@@ -180,8 +180,8 @@
                             <Grid>
                                 <Border x:Name="NavInstallIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavInstallIcon" Text="&#xE7ac;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
-                                    <TextBlock x:Name="NavInstallText" Text="安装" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NavInstallIcon" Text="&#xE7ac;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{DynamicResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavInstallText" Text="安装" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{DynamicResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
                                         </TextBlock.RenderTransform>
@@ -194,8 +194,8 @@
                             <Grid>
                                 <Border x:Name="NavAppsIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavAppsIcon" Text="&#xE74C;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
-                                    <TextBlock x:Name="NavAppsText" Text="应用" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NavAppsIcon" Text="&#xE74C;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{DynamicResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavAppsText" Text="应用" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{DynamicResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
                                         </TextBlock.RenderTransform>
@@ -208,8 +208,8 @@
                             <Grid>
                                 <Border x:Name="NavLogIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavLogIcon" Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
-                                    <TextBlock x:Name="NavLogText" Text="日志" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NavLogIcon" Text="&#xE792;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{DynamicResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavLogText" Text="日志" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{DynamicResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
                                         </TextBlock.RenderTransform>
@@ -222,8 +222,8 @@
                             <Grid>
                                 <Border x:Name="NavAboutIndicator" Width="6" Background="#111214" HorizontalAlignment="Left" Visibility="Collapsed"/>
                                 <StackPanel Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="NavAboutIcon" Text="&#xE730;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{StaticResource NavIconIdleBrush}"/>
-                                    <TextBlock x:Name="NavAboutText" Text="实验" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{StaticResource NavTextIdleBrush}" VerticalAlignment="Center">
+                                    <TextBlock x:Name="NavAboutIcon" Text="&#xE730;" FontFamily="Segoe MDL2 Assets" FontSize="22" Width="26" VerticalAlignment="Center" TextAlignment="Center" Foreground="{DynamicResource NavIconIdleBrush}"/>
+                                    <TextBlock x:Name="NavAboutText" Text="实验" Margin="20,0,0,0" FontSize="14" FontWeight="SemiBold" Opacity="0" Foreground="{DynamicResource NavTextIdleBrush}" VerticalAlignment="Center">
                                         <TextBlock.RenderTransform>
                                             <TranslateTransform X="8"/>
                                         </TextBlock.RenderTransform>
@@ -233,20 +233,27 @@
                         </Button>
                     </StackPanel>
 
-                    <Grid Grid.Row="2" Margin="10,0,10,12">
+                    <Grid Grid.Row="2" Width="56" HorizontalAlignment="Left" Margin="0,0,0,12">
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <Border Background="#E1E1E4" CornerRadius="6" Padding="6" HorizontalAlignment="Left">
+                        <Border Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="6" Padding="4" HorizontalAlignment="Center">
                             <Button x:Name="NavBilibiliButton" Width="28" Height="28" Style="{StaticResource NavRailItemButtonStyle}" ToolTip="哔哩哔哩" Click="OpenAuthor_Click">
-                                <TextBlock Text="&#xE8f2;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#7F8086" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#xE8f2;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource TextDim}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
                         </Border>
 
-                        <Button x:Name="NavPinToggleButton" Grid.Row="1" Width="28" Height="28" Margin="0,10,0,0" HorizontalAlignment="Right" Style="{StaticResource NavRailItemButtonStyle}" Click="NavPinToggle_Click" ToolTip="展开侧栏">
-                            <TextBlock x:Name="NavPinToggleIcon" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="#56575D" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Grid.Row="1" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="6" Padding="4" HorizontalAlignment="Center" Margin="0,10,0,0">
+                            <Button x:Name="NavThemeToggleButton" Width="28" Height="28" Style="{StaticResource NavRailItemButtonStyle}" Click="NavThemeToggle_Click" ToolTip="开启黑夜模式">
+                                <TextBlock x:Name="NavThemeToggleIcon" Text="&#xE708;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource TextDim}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Button>
+                        </Border>
+
+                        <Button x:Name="NavPinToggleButton" Grid.Row="2" Width="28" Height="28" Margin="0,10,0,0" HorizontalAlignment="Center" Style="{StaticResource NavRailItemButtonStyle}" Click="NavPinToggle_Click" ToolTip="展开侧栏">
+                            <TextBlock x:Name="NavPinToggleIcon" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="14" Foreground="{DynamicResource TextDim}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
                     </Grid>
                 </Grid>
@@ -260,9 +267,9 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border x:Name="NoticeBar" Grid.Row="0" Background="{StaticResource InfoBg}" BorderBrush="{StaticResource InfoBorder}" BorderThickness="1" CornerRadius="10" Padding="10,8" Visibility="Collapsed">
+                <Border x:Name="NoticeBar" Grid.Row="0" Background="{DynamicResource InfoBg}" BorderBrush="{DynamicResource InfoBorder}" BorderThickness="1" CornerRadius="10" Padding="10,8" Visibility="Collapsed">
                     <DockPanel LastChildFill="True">
-                        <TextBlock x:Name="NoticeTagText" Text="提示" FontWeight="SemiBold" Foreground="{StaticResource InfoText}" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="NoticeTagText" Text="提示" FontWeight="SemiBold" Foreground="{DynamicResource InfoText}" Margin="0,0,8,0"/>
                         <Button x:Name="NoticeCloseButton" DockPanel.Dock="Right" Width="28" Height="28" Click="NoticeClose_Click" Style="{DynamicResource FluentButton}" Content="×" Padding="0"/>
                         <TextBlock x:Name="NoticeText" VerticalAlignment="Center" TextWrapping="Wrap"/>
                     </DockPanel>
@@ -275,11 +282,11 @@
                     <StackPanel>
                         <DockPanel LastChildFill="False">
                             <TextBlock Text="发现新版本" FontSize="14" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="UpdateVersionText" DockPanel.Dock="Right" Foreground="{StaticResource TextDim}" Margin="10,0,0,0" Text="v-"/>
+                            <TextBlock x:Name="UpdateVersionText" DockPanel.Dock="Right" Foreground="{DynamicResource TextDim}" Margin="10,0,0,0" Text="v-"/>
                         </DockPanel>
-                        <TextBlock x:Name="UpdatePublishedText" Margin="0,4,0,0" Foreground="{StaticResource TextDim}" Text="发布时间：-"/>
-                        <Border Margin="0,6,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="8" Padding="10,6">
-                            <TextBlock x:Name="UpdateNotesText" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="更新内容：-"/>
+                        <TextBlock x:Name="UpdatePublishedText" Margin="0,4,0,0" Foreground="{DynamicResource TextDim}" Text="发布时间：-"/>
+                        <Border Margin="0,6,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="8" Padding="10,6">
+                            <TextBlock x:Name="UpdateNotesText" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="更新内容：-"/>
                         </Border>
                         <WrapPanel Margin="0,8,0,0">
                             <Button x:Name="UpdateGithubButton" Height="36" Content="GitHub 下载" Click="UpdateGithub_Click" Style="{DynamicResource PrimaryButton}" Margin="0,0,8,0"/>
@@ -297,9 +304,9 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <TextBlock Text="实验功能" FontSize="14" FontWeight="SemiBold"/>
-                                <TextBlock Text="实验功能（非官方） 可能被系统还原 不同版本行为不同" Margin="0,8,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                                <TextBlock Text="实验功能（非官方） 可能被系统还原 不同版本行为不同" Margin="0,8,0,0" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
 
-                                <Border Margin="0,12,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                                <Border Margin="0,12,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                                     <StackPanel>
                                         <DockPanel LastChildFill="False">
                                             <TextBlock Text="当前显示参数" FontWeight="SemiBold"/>
@@ -312,13 +319,13 @@
                                         </DockPanel>
                                         <TextBlock x:Name="ExpDisplayInfoText"
                                                    Margin="0,8,0,0"
-                                                   Foreground="{StaticResource TextDim}"
+                                                   Foreground="{DynamicResource TextDim}"
                                                    TextWrapping="Wrap"
                                                    Text="分辨率：-  刷新率：-"/>
                                     </StackPanel>
                                 </Border>
 
-                                <Border Margin="0,10,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                                <Border Margin="0,10,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                                     <StackPanel>
                                         <TextBlock Text="分辨率设置（宽范围：3200~5408 高范围：1728~2912）" FontWeight="SemiBold"/>
                                         <Grid Margin="0,8,0,0">
@@ -337,7 +344,7 @@
                                     </StackPanel>
                                 </Border>
 
-                                <Border Margin="0,10,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                                <Border Margin="0,10,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                                     <StackPanel>
                                         <TextBlock Text="刷新率设置（范围：72~120）" FontWeight="SemiBold"/>
                                         <Grid Margin="0,8,0,0">
@@ -368,8 +375,8 @@
                     VerticalAlignment="Stretch"
                     Width="360"
                     Visibility="Collapsed"
-                    Background="{StaticResource Card}"
-                    BorderBrush="{StaticResource BorderStrong}"
+                    Background="{DynamicResource Card}"
+                    BorderBrush="{DynamicResource BorderStrong}"
                     BorderThickness="1"
                     CornerRadius="14"
                     Margin="0,0,0,0"
@@ -392,21 +399,100 @@
 
                     <StackPanel Margin="0,12,0,0">
                         <TextBlock Text="快速上手" FontWeight="SemiBold"/>
-                        <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="1. 用可传输数据的数据线连接 Quest，并确保头显已开机。"/>
-                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="2. 戴上头显，在授权弹窗里允许 USB 调试（建议勾选始终允许）。"/>
-                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="3. 工具默认会先打开“设备”页；确认状态为“已连接”后，切到“安装”页加入 APK 队列并开始安装。"/>
+                        <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="1. 用可传输数据的数据线连接 Quest，并确保头显已开机。"/>
+                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="2. 戴上头显，在授权弹窗里允许 USB 调试（建议勾选始终允许）。"/>
+                        <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="3. 工具默认会先打开“设备”页；确认状态为“已连接”后，切到“安装”页加入 APK 队列并开始安装。"/>
 
-                        <Border Margin="0,12,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                        <Border Margin="0,12,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                             <StackPanel>
                                 <TextBlock Text="常见问题" FontWeight="SemiBold"/>
-                                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="• 显示“需要授权”：请在头显里确认 USB 调试。"/>
-                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="• 频繁 offline：优先使用主板 USB 2.0 Type-A 接口。"/>
-                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{StaticResource TextDim}" Text="• 安装失败：在队列项中查看失败原因并按建议重试。"/>
+                                <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="• 显示“需要授权”：请在头显里确认 USB 调试。"/>
+                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="• 频繁 offline：优先使用主板 USB 2.0 Type-A 接口。"/>
+                                <TextBlock Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextDim}" Text="• 安装失败：在队列项中查看失败原因并按建议重试。"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </DockPanel>
             </Border>
         </Grid>
+
+        <Border x:Name="LaunchOverlay"
+                Grid.RowSpan="2"
+                Panel.ZIndex="200"
+                Background="{DynamicResource Bg}"
+                Opacity="1"
+                Visibility="Visible">
+            <Grid>
+                <Border x:Name="LaunchCard"
+                        Width="420"
+                        Padding="20"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource Card}"
+                        BorderBrush="{DynamicResource BorderStrong}"
+                        BorderThickness="1"
+                        CornerRadius="14">
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="LaunchCardScale" ScaleX="1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="38" Height="38" Background="{DynamicResource SurfaceSubtle}" CornerRadius="10">
+                                <Image Source="/app.ico" Stretch="Uniform" Margin="6"/>
+                            </Border>
+                            <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="Quest ADB Tool" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource Text}"/>
+                                <TextBlock x:Name="LaunchStatusText" Text="正在初始化设备与页面..." Margin="0,4,0,0" Foreground="{DynamicResource TextDim}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Grid Margin="0,16,0,0">
+                            <Border Width="16"
+                                    Height="16"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"
+                                    RenderTransformOrigin="0.5,0.5">
+                                <Border.RenderTransform>
+                                    <RotateTransform x:Name="LaunchSpinnerRotate" Angle="0"/>
+                                </Border.RenderTransform>
+                                <TextBlock HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontFamily="Segoe MDL2 Assets"
+                                           FontSize="14"
+                                           Foreground="{DynamicResource TextDim}"
+                                           Text="&#xE895;"/>
+                            </Border>
+                            <ProgressBar IsIndeterminate="True"
+                                         Height="6"
+                                         Margin="0,0,24,0"
+                                         Foreground="{DynamicResource Primary}"
+                                         Background="{DynamicResource Border}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <Border.Triggers>
+                <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                    <BeginStoryboard>
+                        <Storyboard RepeatBehavior="Forever">
+                            <DoubleAnimation Storyboard.TargetName="LaunchSpinnerRotate"
+                                             Storyboard.TargetProperty="Angle"
+                                             From="0" To="360" Duration="0:0:1.25"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Border.Triggers>
+        </Border>
     </Grid>
 </Window>
+
+
+
+
+
+
+
+
+
+
+

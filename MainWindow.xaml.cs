@@ -201,6 +201,12 @@ public partial class MainWindow : Window
         public required string Result { get; init; }
     }
 
+
+    private sealed class AppSettings
+    {
+        [JsonPropertyName("dark_mode")]
+        public bool DarkMode { get; set; }
+    }
     private const string QueuePending = "pending";
     private const string QueueInstalling = "installing";
     private const string QueueSuccess = "success";
@@ -222,6 +228,8 @@ public partial class MainWindow : Window
     private bool _isNavPinned;
     private bool _isNavAnimating;
     private bool _navIntroPlayed;
+    private bool _isDarkMode;
+    private readonly DateTime _launchOverlayShownAt = DateTime.Now;
     private ResponsiveTier _responsiveTier = ResponsiveTier.Wide;
     private UpdateManifest? _latestUpdate;
     private Process? _screenRecordProcess;
@@ -242,10 +250,11 @@ public partial class MainWindow : Window
     private int _installFailCount;
 
     private string _logFilePath = "";
+    private string _settingsFilePath = "";
     private static readonly HttpClient UpdateHttpClient = new() { Timeout = TimeSpan.FromSeconds(5) };
     private const string UpdateManifestUrl = "https://superpixel-1302573006.cos.ap-nanjing.myqcloud.com/update.json";
     private const double NavCollapsedWidth = 56;
-    private const double NavExpandedWidth = 240;
+    private const double NavExpandedWidth = 195;
     private readonly bool _navKeepExpandedAfterIntro = false;
 
     private enum ResponsiveTier
@@ -391,14 +400,26 @@ public partial class MainWindow : Window
         ExpAutomationScriptBox.Text = "";
         UpdateScreenRecordStateUi();
         InitLogFile();
+        InitSettingsFile();
+        ApplyTheme(LoadThemeSetting(), persist: false);
         ShowFirstRunTip();
         ApplyResponsiveLayout();
 
         Loaded += async (_, __) =>
         {
-            await PlayNavRailStartupAnimationAsync();
-            await RefreshStatus();
-            await CheckForUpdatesAsync(userInitiated: false);
+            try
+            {
+                LaunchStatusText.Text = "正在准备侧栏动画...";
+                await PlayNavRailStartupAnimationAsync();
+                LaunchStatusText.Text = "正在检测设备状态...";
+                await RefreshStatus();
+                LaunchStatusText.Text = "正在检查版本更新...";
+                await CheckForUpdatesAsync(userInitiated: false);
+            }
+            finally
+            {
+                await DismissLaunchOverlayAsync();
+            }
         };
         StateChanged += (_, __) => UpdateWindowChromeButtons();
     }
@@ -451,6 +472,51 @@ public partial class MainWindow : Window
         {
             await AnimateNavRailAsync(expand: false, durationMs: 320);
         }
+    }
+
+    private async Task DismissLaunchOverlayAsync()
+    {
+        if (LaunchOverlay == null || LaunchOverlay.Visibility != Visibility.Visible) return;
+
+        var elapsed = DateTime.Now - _launchOverlayShownAt;
+        var minDuration = TimeSpan.FromMilliseconds(900);
+        if (elapsed < minDuration)
+        {
+            await Task.Delay(minDuration - elapsed);
+        }
+
+        var tcs = new TaskCompletionSource<bool>();
+        var fade = new DoubleAnimation
+        {
+            To = 0,
+            Duration = TimeSpan.FromMilliseconds(260),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        fade.Completed += (_, __) =>
+        {
+            LaunchOverlay.Visibility = Visibility.Collapsed;
+            LaunchOverlay.IsHitTestVisible = false;
+            tcs.TrySetResult(true);
+        };
+
+        var scaleX = new DoubleAnimation
+        {
+            To = 0.98,
+            Duration = TimeSpan.FromMilliseconds(260),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+        var scaleY = new DoubleAnimation
+        {
+            To = 0.98,
+            Duration = TimeSpan.FromMilliseconds(260),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+        };
+
+        LaunchOverlay.BeginAnimation(UIElement.OpacityProperty, fade);
+        LaunchCardScale?.BeginAnimation(ScaleTransform.ScaleXProperty, scaleX);
+        LaunchCardScale?.BeginAnimation(ScaleTransform.ScaleYProperty, scaleY);
+
+        await tcs.Task;
     }
 
     private async Task AnimateNavRailAsync(bool expand, int durationMs)
@@ -629,6 +695,13 @@ public partial class MainWindow : Window
         UpdateNavPinToggleVisual();
         _navHoverIntentTimer?.Stop();
         await AnimateNavRailAsync(expand: true, durationMs: 380);
+    }
+
+
+    private void NavThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyTheme(!_isDarkMode, persist: true);
+        ShowNotice(_isDarkMode ? "已切换到黑夜模式。" : "已切换到浅色模式。", "info");
     }
 
     private void UpdateNavPinToggleVisual()
@@ -2332,18 +2405,36 @@ public partial class MainWindow : Window
 
     private void InitLogFile()
     {
-        var logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QuestADBTool", "logs");
-        Directory.CreateDirectory(logDir);
-        _logFilePath = Path.Combine(logDir, $"log_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
+        var candidates = new[]
+        {
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QuestADBTool", "logs"),
+            Path.Combine(Path.GetTempPath(), "QuestADBTool", "logs")
+        };
 
-        SafeAppendFile(
-            $"=== QuestADBTool Log ==={Environment.NewLine}" +
-            $"Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
-            $"OS: {Environment.OSVersion}{Environment.NewLine}" +
-            $"AppBase: {AppContext.BaseDirectory}{Environment.NewLine}" +
-            $"========================{Environment.NewLine}{Environment.NewLine}");
+        foreach (var dir in candidates)
+        {
+            try
+            {
+                Directory.CreateDirectory(dir);
+                _logFilePath = Path.Combine(dir, $"log_{DateTime.Now:yyyyMMdd_HHmmss}.txt");
 
-        AppendLog($"[Log] Log file: {_logFilePath}");
+                SafeAppendFile(
+                    $"=== QuestADBTool Log ==={Environment.NewLine}" +
+                    $"Time: {DateTime.Now:yyyy-MM-dd HH:mm:ss}{Environment.NewLine}" +
+                    $"OS: {Environment.OSVersion}{Environment.NewLine}" +
+                    $"AppBase: {AppContext.BaseDirectory}{Environment.NewLine}" +
+                    $"========================{Environment.NewLine}{Environment.NewLine}");
+
+                AppendLog($"[Log] Log file: {_logFilePath}");
+                return;
+            }
+            catch
+            {
+                _logFilePath = "";
+            }
+        }
+
+        _logFilePath = "";
     }
 
     private async Task<(int ExitCode, string StdOut, string StdErr)> RunAdb(string args, bool logCommand = true, bool logOutput = true)
@@ -2386,7 +2477,17 @@ public partial class MainWindow : Window
     private void SafeAppendFile(string content)
     {
         if (string.IsNullOrWhiteSpace(_logFilePath)) return;
-        lock (_logLock) { File.AppendAllText(_logFilePath, content, Encoding.UTF8); }
+        lock (_logLock)
+        {
+            try
+            {
+                File.AppendAllText(_logFilePath, content, Encoding.UTF8);
+            }
+            catch
+            {
+                // Keep app available even when file logging is unavailable.
+            }
+        }
     }
 
     private async Task CheckForUpdatesAsync(bool userInitiated)
@@ -2621,6 +2722,156 @@ public partial class MainWindow : Window
         GuideDrawer.BeginAnimation(UIElement.OpacityProperty, fade);
     }
 
+
+    private void InitSettingsFile()
+    {
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "QuestADBTool");
+        Directory.CreateDirectory(dir);
+        _settingsFilePath = Path.Combine(dir, "settings.json");
+    }
+
+    private bool LoadThemeSetting()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_settingsFilePath) || !File.Exists(_settingsFilePath)) return false;
+            var json = File.ReadAllText(_settingsFilePath, Encoding.UTF8);
+            var settings = JsonSerializer.Deserialize<AppSettings>(json);
+            return settings?.DarkMode == true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void SaveThemeSetting()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(_settingsFilePath)) return;
+            var settings = new AppSettings { DarkMode = _isDarkMode };
+            var json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_settingsFilePath, json, Encoding.UTF8);
+        }
+        catch { }
+    }
+
+    private void ApplyTheme(bool darkMode, bool persist)
+    {
+        _isDarkMode = darkMode;
+
+        if (darkMode)
+        {
+            SetSolidBrushColor(Application.Current.Resources, "Bg", "#1B1D23");
+            SetSolidBrushColor(Application.Current.Resources, "Card", "#1F2229");
+            SetSolidBrushColor(Application.Current.Resources, "SurfaceSubtle", "#252931");
+            SetSolidBrushColor(Application.Current.Resources, "SurfaceOverlay", "#991A1D23");
+            SetSolidBrushColor(Application.Current.Resources, "Text", "#E4E6EB");
+            SetSolidBrushColor(Application.Current.Resources, "TextDim", "#9AA1AE");
+            SetSolidBrushColor(Application.Current.Resources, "Border", "#323844");
+            SetSolidBrushColor(Application.Current.Resources, "BorderStrong", "#424A58");
+            SetSolidBrushColor(Application.Current.Resources, "Primary", "#1592FF");
+            SetSolidBrushColor(Application.Current.Resources, "PrimaryHover", "#1084E8");
+            SetSolidBrushColor(Application.Current.Resources, "PrimaryPressed", "#0D75CF");
+            SetSolidBrushColor(Application.Current.Resources, "InfoBg", "#1B273B");
+            SetSolidBrushColor(Application.Current.Resources, "InfoBorder", "#2F4C76");
+            SetSolidBrushColor(Application.Current.Resources, "InfoText", "#9AC5FF");
+            SetSolidBrushColor(Application.Current.Resources, "WarnBg", "#33280F");
+            SetSolidBrushColor(Application.Current.Resources, "WarnBorder", "#6B4F1E");
+            SetSolidBrushColor(Application.Current.Resources, "WarnText", "#FCD34D");
+            SetSolidBrushColor(Application.Current.Resources, "ErrorBg", "#331D22");
+            SetSolidBrushColor(Application.Current.Resources, "ErrorBorder", "#7A2E39");
+            SetSolidBrushColor(Application.Current.Resources, "ErrorText", "#FCA5A5");
+            SetSolidBrushColor(Application.Current.Resources, "SuccessBg", "#173127");
+            SetSolidBrushColor(Application.Current.Resources, "SuccessBorder", "#2D5F4A");
+            SetSolidBrushColor(Application.Current.Resources, "SuccessText", "#86EFAC");
+
+            SetSolidBrushColor(Resources, "NavRailBgBrush", "#191C22");
+            SetSolidBrushColor(Resources, "NavRailBorderBrush", "#2B313C");
+            SetSolidBrushColor(Resources, "NavItemHoverBrush", "#242A34");
+            SetSolidBrushColor(Resources, "NavItemActiveBrush", "#2D3440");
+            SetSolidBrushColor(Resources, "NavIconIdleBrush", "#8892A1");
+            SetSolidBrushColor(Resources, "NavIconActiveBrush", "#E4E6EB");
+            SetSolidBrushColor(Resources, "NavTextIdleBrush", "#96A0AF");
+            SetSolidBrushColor(Resources, "NavTextActiveBrush", "#F3F4F6");
+
+            if (TitleBarBorder != null) TitleBarBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A4D54"));
+        }
+        else
+        {
+            SetSolidBrushColor(Application.Current.Resources, "Bg", "#F3F4F6");
+            SetSolidBrushColor(Application.Current.Resources, "Card", "#FFFFFF");
+            SetSolidBrushColor(Application.Current.Resources, "SurfaceSubtle", "#F8FAFC");
+            SetSolidBrushColor(Application.Current.Resources, "SurfaceOverlay", "#66FFFFFF");
+            SetSolidBrushColor(Application.Current.Resources, "Text", "#111827");
+            SetSolidBrushColor(Application.Current.Resources, "TextDim", "#6B7280");
+            SetSolidBrushColor(Application.Current.Resources, "Border", "#E4E6EB");
+            SetSolidBrushColor(Application.Current.Resources, "BorderStrong", "#CBD5E1");
+            SetSolidBrushColor(Application.Current.Resources, "Primary", "#C2FF89");
+            SetSolidBrushColor(Application.Current.Resources, "PrimaryHover", "#B2F77A");
+            SetSolidBrushColor(Application.Current.Resources, "PrimaryPressed", "#9EEA60");
+            SetSolidBrushColor(Application.Current.Resources, "InfoBg", "#EFF6FF");
+            SetSolidBrushColor(Application.Current.Resources, "InfoBorder", "#BFDBFE");
+            SetSolidBrushColor(Application.Current.Resources, "InfoText", "#1D4ED8");
+            SetSolidBrushColor(Application.Current.Resources, "WarnBg", "#FFFBEB");
+            SetSolidBrushColor(Application.Current.Resources, "WarnBorder", "#FDE68A");
+            SetSolidBrushColor(Application.Current.Resources, "WarnText", "#B45309");
+            SetSolidBrushColor(Application.Current.Resources, "ErrorBg", "#FEF2F2");
+            SetSolidBrushColor(Application.Current.Resources, "ErrorBorder", "#FECACA");
+            SetSolidBrushColor(Application.Current.Resources, "ErrorText", "#B91C1C");
+            SetSolidBrushColor(Application.Current.Resources, "SuccessBg", "#ECFDF5");
+            SetSolidBrushColor(Application.Current.Resources, "SuccessBorder", "#BBF7D0");
+            SetSolidBrushColor(Application.Current.Resources, "SuccessText", "#166534");
+
+            SetSolidBrushColor(Resources, "NavRailBgBrush", "#ECECED");
+            SetSolidBrushColor(Resources, "NavRailBorderBrush", "#DFDFE2");
+            SetSolidBrushColor(Resources, "NavItemHoverBrush", "#E1E1E4");
+            SetSolidBrushColor(Resources, "NavItemActiveBrush", "#D8D8DC");
+            SetSolidBrushColor(Resources, "NavIconIdleBrush", "#C5C5C9");
+            SetSolidBrushColor(Resources, "NavIconActiveBrush", "#1C1C1F");
+            SetSolidBrushColor(Resources, "NavTextIdleBrush", "#8A8A90");
+            SetSolidBrushColor(Resources, "NavTextActiveBrush", "#1F1F23");
+
+            if (TitleBarBorder != null) TitleBarBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F3F4F6"));
+        }
+
+        UpdateThemeToggleVisual();
+        ApplyNavSelectionVisuals(_activePage);
+
+        if (persist) SaveThemeSetting();
+    }
+
+    private void UpdateThemeToggleVisual()
+    {
+        if (NavThemeToggleButton == null || NavThemeToggleIcon == null) return;
+        NavThemeToggleIcon.Text = _isDarkMode ? "\uE706" : "\uE708";
+        NavThemeToggleButton.ToolTip = _isDarkMode ? "切换为浅色模式" : "开启黑夜模式";
+        NavThemeToggleIcon.Foreground = ResolveBrush("TextDim", _isDarkMode ? "#9AA1AE" : "#6B7280");
+        if (NavPinToggleIcon != null)
+        {
+            NavPinToggleIcon.Foreground = ResolveBrush("TextDim", _isDarkMode ? "#9AA1AE" : "#6B7280");
+        }
+    }
+
+    private static void SetSolidBrushColor(ResourceDictionary resourceDictionary, string key, string colorHex)
+    {
+        var color = (Color)ColorConverter.ConvertFromString(colorHex);
+        if (resourceDictionary[key] is SolidColorBrush brush)
+        {
+            if (!brush.IsFrozen)
+            {
+                brush.Color = color;
+                return;
+            }
+
+            resourceDictionary[key] = new SolidColorBrush(color);
+            return;
+        }
+
+        resourceDictionary[key] = new SolidColorBrush(color);
+    }
+
     private Brush ResolveBrush(string resourceKey, string fallbackHex)
     {
         var brush = TryFindResource(resourceKey) as Brush;
@@ -2750,4 +3001,13 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 }
+
+
+
+
+
+
+
+
+
 

@@ -17,10 +17,10 @@
             <DockPanel Grid.Row="0" Grid.ColumnSpan="2" LastChildFill="False">
                 <TextBlock Text="安装应用到 Quest" FontSize="14" FontWeight="SemiBold"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Border Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="8,0,0,0">
+                    <Border Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Ellipse x:Name="InstallDeviceStateDot" Width="8" Height="8" Fill="#9CA3AF" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                            <TextBlock x:Name="InstallDeviceStateText" Text="连接未知" Foreground="{StaticResource TextDim}" FontSize="12"/>
+                            <Ellipse x:Name="InstallDeviceStateDot" Width="8" Height="8" Fill="{DynamicResource TextDim}" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="InstallDeviceStateText" Text="连接未知" Foreground="{DynamicResource TextDim}" FontSize="12"/>
                         </StackPanel>
                     </Border>
                     <Button x:Name="InstallHeaderRefreshButton"
@@ -28,10 +28,10 @@
                             Padding="10,3"
                             MinWidth="0"
                             MinHeight="0"
-                            Background="{StaticResource SurfaceSubtle}"
-                            BorderBrush="{StaticResource Border}"
+                            Background="{DynamicResource SurfaceSubtle}"
+                            BorderBrush="{DynamicResource Border}"
                             BorderThickness="1"
-                            Foreground="{StaticResource Text}"
+                            Foreground="{DynamicResource Text}"
                             FontSize="12"
                             FontWeight="SemiBold"
                             Cursor="Hand">
@@ -47,10 +47,10 @@
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="{StaticResource Bg}"/>
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Bg}"/>
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
-                                        <Setter TargetName="Bd" Property="Background" Value="#E5E7EB"/>
+                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Border}"/>
                                     </Trigger>
                                     <Trigger Property="IsEnabled" Value="False">
                                         <Setter Property="Opacity" Value="0.5"/>
@@ -60,20 +60,20 @@
                         </Button.Template>
                         <TextBlock Text="重新检测" FontSize="12" FontWeight="SemiBold"/>
                     </Button>
-                    <Border Background="{StaticResource SuccessBg}" BorderBrush="{StaticResource SuccessBorder}" BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="8,0,0,0">
-                        <TextBlock x:Name="InstallSuccessBadge" Text="成功 0" Foreground="{StaticResource SuccessText}" FontSize="12"/>
+                    <Border Background="{DynamicResource SuccessBg}" BorderBrush="{DynamicResource SuccessBorder}" BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="8,0,0,0">
+                        <TextBlock x:Name="InstallSuccessBadge" Text="成功 0" Foreground="{DynamicResource SuccessText}" FontSize="12"/>
                     </Border>
-                    <Border Background="{StaticResource ErrorBg}" BorderBrush="{StaticResource ErrorBorder}" BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="8,0,0,0">
-                        <TextBlock x:Name="InstallFailBadge" Text="失败 0" Foreground="{StaticResource ErrorText}" FontSize="12"/>
+                    <Border Background="{DynamicResource ErrorBg}" BorderBrush="{DynamicResource ErrorBorder}" BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="8,0,0,0">
+                        <TextBlock x:Name="InstallFailBadge" Text="失败 0" Foreground="{DynamicResource ErrorText}" FontSize="12"/>
                     </Border>
                 </StackPanel>
             </DockPanel>
 
             <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,10,12,0">
-                <TextBlock Text="选择一个或多个 .apk 后加入队列，再开始安装" Foreground="{StaticResource TextDim}" Margin="0,0,0,10"/>
+                <TextBlock Text="选择一个或多个 .apk 后加入队列，再开始安装" Foreground="{DynamicResource TextDim}" Margin="0,0,0,10"/>
 
                 <Border Margin="0,0,0,10" Padding="10,8" CornerRadius="8" BorderThickness="1"
-                        Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource BorderStrong}">
+                        Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource BorderStrong}">
                     <TextBlock Text="可直接拖入多个 .apk 文件到此区域（或路径输入框）加入队列"
                                Foreground="{DynamicResource TextDim}"/>
                 </Border>
@@ -89,8 +89,8 @@
 
                     <Button x:Name="PickApkButton" Grid.Column="1" Height="36" Margin="10,0,0,0" Style="{DynamicResource FluentButton}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE8B7;" Margin="0,0,6,0"/>
-                            <TextBlock Text="选择..."/>
+                            <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE838;" Margin="0,0,6,0"/>
+                            <TextBlock Text="选择应用"/>
                         </StackPanel>
                     </Button>
 
@@ -103,7 +103,7 @@
                 </Grid>
 
                 <Border Margin="0,10,0,0" Padding="10,8" CornerRadius="8" BorderThickness="1"
-                        Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}">
+                        Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}">
                     <StackPanel>
                         <TextBlock Text="连接提示" FontWeight="SemiBold"/>
                         <Grid Margin="0,6,0,0">
@@ -111,33 +111,33 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="•" Foreground="{StaticResource TextDim}" Margin="0,0,6,0"/>
-                            <TextBlock Grid.Column="1" Text="若提示“需要授权”，请戴上头显后点击“允许 USB 调试”。" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                            <TextBlock Grid.Column="0" Text="•" Foreground="{DynamicResource TextDim}" Margin="0,0,6,0"/>
+                            <TextBlock Grid.Column="1" Text="若提示“需要授权”，请戴上头显后点击“允许 USB 调试”。" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
                         </Grid>
                         <Grid Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="•" Foreground="{StaticResource TextDim}" Margin="0,0,6,0"/>
-                            <TextBlock Grid.Column="1" Text="连接不稳定或 offline 时，优先使用主板 USB 2.0 Type-A 接口。" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                            <TextBlock Grid.Column="0" Text="•" Foreground="{DynamicResource TextDim}" Margin="0,0,6,0"/>
+                            <TextBlock Grid.Column="1" Text="连接不稳定或 offline 时，优先使用主板 USB 2.0 Type-A 接口。" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
                         </Grid>
                         <Grid Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="•" Foreground="{StaticResource TextDim}" Margin="0,0,6,0"/>
-                            <TextBlock Grid.Column="1" Text="安装队列支持失败项重试，可先批量加入再统一开始安装。" Foreground="{StaticResource TextDim}" TextWrapping="Wrap"/>
+                            <TextBlock Grid.Column="0" Text="•" Foreground="{DynamicResource TextDim}" Margin="0,0,6,0"/>
+                            <TextBlock Grid.Column="1" Text="安装队列支持失败项重试，可先批量加入再统一开始安装。" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap"/>
                         </Grid>
                     </StackPanel>
                 </Border>
 
                 <Border Margin="0,12,0,0" Padding="10,8" CornerRadius="8" BorderThickness="1"
-                        Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}">
+                        Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}">
                     <StackPanel>
                         <TextBlock Text="向头显输入文字" FontSize="14" FontWeight="SemiBold"/>
-                        <TextBlock Text="发送到 Quest 当前聚焦的输入框" Foreground="{StaticResource TextDim}" Margin="0,6,0,10"/>
+                        <TextBlock Text="在头显点击输入框，弹出虚拟键盘后，再发送到 Quest 当前聚焦的输入框" Foreground="{DynamicResource TextDim}" Margin="0,6,0,10" TextWrapping="Wrap"/>
 
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -149,14 +149,14 @@
                             <Button x:Name="SendTextButton" Grid.Column="1" Height="36" Content="发送到头显" Margin="10,0,0,0" Style="{DynamicResource PrimaryButton}"/>
                         </Grid>
 
-                        <TextBlock Text="示例：war thunder（空格会自动处理）。尽量避免很长或复杂符号。" Foreground="{StaticResource TextDim}" Margin="0,10,0,0"/>
+                        <TextBlock Text="示例：war thunder（空格会自动处理）。尽量避免很长或复杂符号。" Foreground="{DynamicResource TextDim}" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
 
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="12,10,0,0">
                 <Border Padding="10,8" CornerRadius="8" BorderThickness="1"
-                        Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}">
+                        Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -166,15 +166,15 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <TextBlock x:Name="ApkInfoFileText" Grid.Row="0" Grid.Column="0" Text="文件：-" Foreground="{StaticResource TextDim}" Margin="0,0,10,4"/>
-                        <TextBlock x:Name="ApkInfoSizeText" Grid.Row="0" Grid.Column="1" Text="大小：-" Foreground="{StaticResource TextDim}" Margin="0,0,0,4"/>
-                        <TextBlock x:Name="ApkInfoPackageText" Grid.Row="1" Grid.Column="0" Text="包名：-" Foreground="{StaticResource TextDim}" Margin="0,0,10,0"/>
-                        <TextBlock x:Name="ApkInfoVersionText" Grid.Row="1" Grid.Column="1" Text="版本：-" Foreground="{StaticResource TextDim}"/>
+                        <TextBlock x:Name="ApkInfoFileText" Grid.Row="0" Grid.Column="0" Text="文件：-" Foreground="{DynamicResource TextDim}" Margin="0,0,10,4"/>
+                        <TextBlock x:Name="ApkInfoSizeText" Grid.Row="0" Grid.Column="1" Text="大小：-" Foreground="{DynamicResource TextDim}" Margin="0,0,0,4"/>
+                        <TextBlock x:Name="ApkInfoPackageText" Grid.Row="1" Grid.Column="0" Text="包名：-" Foreground="{DynamicResource TextDim}" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="ApkInfoVersionText" Grid.Row="1" Grid.Column="1" Text="版本：-" Foreground="{DynamicResource TextDim}"/>
                     </Grid>
                 </Border>
 
                 <Border Margin="0,10,0,0" Padding="8,6" CornerRadius="8" BorderThickness="1"
-                        Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}">
+                        Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}">
                     <Expander x:Name="AdvancedOptionsExpander" IsExpanded="False">
                         <Expander.Header>
                             <TextBlock Text="高级安装选项" FontWeight="SemiBold"/>
@@ -187,17 +187,17 @@
                             <CheckBox x:Name="AllowTestApkCheckBox" Content="允许测试包 (-t)"
                                       ToolTip="安装 testOnly APK 时需要勾选。"/>
                             <TextBlock Text="说明：覆盖安装会保留应用数据；降级用于装低版本；测试包用于 testOnly APK。"
-                                       Foreground="{StaticResource TextDim}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                       Foreground="{DynamicResource TextDim}" Margin="0,8,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Expander>
                 </Border>
 
                 <Border Margin="0,10,0,0" Padding="10,8" CornerRadius="8" BorderThickness="1"
-                        Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}">
+                        Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}">
                     <StackPanel>
                         <DockPanel LastChildFill="False">
                             <TextBlock Text="安装队列" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="QueueCountText" DockPanel.Dock="Right" Text="待处理：0" Foreground="{StaticResource TextDim}"/>
+                            <TextBlock x:Name="QueueCountText" DockPanel.Dock="Right" Text="待处理：0" Foreground="{DynamicResource TextDim}"/>
                         </DockPanel>
 
                         <ListBox x:Name="QueueListBox" Height="116" Margin="0,8,0,8">
@@ -216,17 +216,17 @@
 
                                         <TextBlock Grid.Row="0" Text="{Binding FileName, Mode=OneWay}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Margin="0,0,8,0"/>
                                         <Border Grid.Row="0" Grid.Column="1" Padding="8,2" CornerRadius="6"
-                                                Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}" BorderThickness="1">
-                                            <TextBlock Text="{Binding StatusDisplay, Mode=OneWay}" Foreground="{StaticResource TextDim}" FontSize="12"/>
+                                                Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Border}" BorderThickness="1">
+                                            <TextBlock Text="{Binding StatusDisplay, Mode=OneWay}" Foreground="{DynamicResource TextDim}" FontSize="12"/>
                                         </Border>
 
-                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,3,0,0" FontSize="12" Foreground="{StaticResource TextDim}">
+                                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Margin="0,3,0,0" FontSize="12" Foreground="{DynamicResource TextDim}">
                                             <Run Text="尝试 "/><Run Text="{Binding AttemptCount, Mode=OneWay}"/>
                                             <Run Text=" 次  "/>
                                             <Run Text="最近耗时 "/><Run Text="{Binding LastElapsedDisplay, Mode=OneWay}"/>
                                         </TextBlock>
 
-                                        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Margin="0,2,0,0" FontSize="12" Foreground="{StaticResource TextDim}" TextTrimming="CharacterEllipsis">
+                                        <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Margin="0,2,0,0" FontSize="12" Foreground="{DynamicResource TextDim}" TextTrimming="CharacterEllipsis">
                                             <Run Text="原因："/><Run Text="{Binding LastReasonShort, Mode=OneWay}"/>
                                         </TextBlock>
                                     </Grid>
@@ -245,16 +245,19 @@
                 </Border>
             </StackPanel>
 
-            <Border x:Name="InstallBusyOverlay" Grid.RowSpan="2" Grid.ColumnSpan="2" Visibility="Collapsed" Background="{StaticResource SurfaceOverlay}">
+            <Border x:Name="InstallBusyOverlay" Grid.RowSpan="2" Grid.ColumnSpan="2" Visibility="Collapsed" Background="{DynamicResource SurfaceOverlay}">
                 <Border Width="300" HorizontalAlignment="Center" VerticalAlignment="Center"
-                        Background="{StaticResource Card}" BorderBrush="{StaticResource BorderStrong}" BorderThickness="1" CornerRadius="12" Padding="14">
+                        Background="{DynamicResource Card}" BorderBrush="{DynamicResource BorderStrong}" BorderThickness="1" CornerRadius="12" Padding="14">
                     <StackPanel>
                         <TextBlock x:Name="InstallOverlayText" Text="正在处理安装队列..." FontWeight="SemiBold" HorizontalAlignment="Center"/>
                         <ProgressBar x:Name="InstallOverlayProgressBar" Height="8" Margin="0,10,0,0" IsIndeterminate="True"/>
-                        <TextBlock x:Name="InstallOverlayElapsedText" Text="已耗时 00:00" Foreground="{StaticResource TextDim}" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="InstallOverlayElapsedText" Text="已耗时 00:00" Foreground="{DynamicResource TextDim}" Margin="0,8,0,0" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
             </Border>
         </Grid>
     </Border>
 </UserControl>
+
+
+

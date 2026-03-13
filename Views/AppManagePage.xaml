@@ -12,7 +12,7 @@
 
             <DockPanel Grid.Row="0" LastChildFill="False">
                 <TextBlock Text="应用管理" FontSize="14" FontWeight="SemiBold"/>
-                <TextBlock x:Name="AppCountText" DockPanel.Dock="Right" Foreground="{StaticResource TextDim}" Margin="10,0,0,0" Text="应用数：0"/>
+                <TextBlock x:Name="AppCountText" DockPanel.Dock="Right" Foreground="{DynamicResource TextDim}" Margin="10,0,0,0" Text="应用数：0"/>
             </DockPanel>
 
             <Grid Grid.Row="1" Margin="0,10,0,0">
@@ -22,7 +22,7 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                <Border Grid.Column="0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -40,8 +40,8 @@
 
                         <StackPanel Grid.Row="2" Margin="0,0,0,8" Visibility="Collapsed" x:Name="AppRefreshProgressPanel">
                             <DockPanel LastChildFill="True">
-                                <TextBlock x:Name="AppRefreshProgressText" Foreground="{StaticResource TextDim}" Text="正在读取..." />
-                                <TextBlock x:Name="AppRefreshProgressValueText" DockPanel.Dock="Right" Foreground="{StaticResource TextDim}" Margin="8,0,0,0" Text="0%"/>
+                                <TextBlock x:Name="AppRefreshProgressText" Foreground="{DynamicResource TextDim}" Text="正在读取..." />
+                                <TextBlock x:Name="AppRefreshProgressValueText" DockPanel.Dock="Right" Foreground="{DynamicResource TextDim}" Margin="8,0,0,0" Text="0%"/>
                             </DockPanel>
                             <ProgressBar x:Name="AppRefreshProgressBar" Height="6" Margin="0,6,0,0" Minimum="0" Maximum="100" Value="0"/>
                         </StackPanel>
@@ -68,7 +68,7 @@
                                             </Border>
                                             <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
                                         </DockPanel>
-                                        <TextBlock Grid.Row="1" Text="{Binding PackageName}" Foreground="{StaticResource TextDim}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Row="1" Text="{Binding PackageName}" Foreground="{DynamicResource TextDim}" FontSize="12" TextTrimming="CharacterEllipsis"/>
                                     </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding IsOfficialApp}" Value="True">
@@ -81,10 +81,10 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Column="2" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+                <Border Grid.Column="2" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                     <StackPanel>
                         <TextBlock Text="当前选中" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="AppSelectedPackageText" Margin="0,8,0,0" Foreground="{StaticResource TextDim}" TextWrapping="Wrap" Text="包名：-"/>
+                        <TextBlock x:Name="AppSelectedPackageText" Margin="0,8,0,0" Foreground="{DynamicResource TextDim}" TextWrapping="Wrap" Text="包名：-"/>
 
                         <WrapPanel Margin="0,12,0,0">
                             <Button x:Name="AppLaunchButton" Height="36" Content="启动应用" Style="{DynamicResource PrimaryButton}" Margin="0,0,8,8"/>
@@ -92,8 +92,8 @@
                             <Button x:Name="AppCopyPackageButton" Height="36" Content="复制包名" Style="{DynamicResource FluentButton}" Margin="0,0,0,8"/>
                         </WrapPanel>
 
-                        <Border Margin="0,8,0,0" Background="{StaticResource Bg}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="8" Padding="10,8">
-                            <TextBlock Foreground="{StaticResource TextDim}" TextWrapping="Wrap" Text="提示：卸载前建议确认应用来源。系统应用通常不可直接卸载；可勾选“包含系统应用”仅用于查看。"/>
+                        <Border Margin="0,8,0,0" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="8" Padding="10,8">
+                            <TextBlock Foreground="{DynamicResource TextDim}" TextWrapping="Wrap" Text="提示：卸载前建议确认应用来源。系统应用通常不可直接卸载；可勾选“包含系统应用”仅用于查看。"/>
                         </Border>
                     </StackPanel>
                 </Border>
@@ -101,3 +101,4 @@
         </Grid>
     </Border>
 </UserControl>
+

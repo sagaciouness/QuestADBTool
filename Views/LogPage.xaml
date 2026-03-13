@@ -8,12 +8,12 @@
             <DockPanel DockPanel.Dock="Top" LastChildFill="True">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBlock Text="日志" FontSize="14" FontWeight="SemiBold"/>
-                    <TextBlock Text="   出现问题时，请点击“打开问题日志”并发送最新日志给作者。" Foreground="{StaticResource TextDim}" Margin="10,2,0,0"/>
+                    <TextBlock Text="   出现问题时，请点击“打开问题日志”并发送最新日志给作者。" Foreground="{DynamicResource TextDim}" Margin="10,2,0,0"/>
                 </StackPanel>
                 <Button x:Name="ToggleLogButton" DockPanel.Dock="Right" Height="32" Content="展开日志" Style="{DynamicResource FluentButton}"/>
             </DockPanel>
 
-            <Border DockPanel.Dock="Top" Margin="0,10,0,0" Background="{StaticResource SurfaceSubtle}" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
+            <Border DockPanel.Dock="Top" Margin="0,10,0,0" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Border}" BorderThickness="1" CornerRadius="10" Padding="10">
                 <StackPanel>
                     <DockPanel LastChildFill="False">
                         <TextBlock Text="历史操作记录" FontWeight="SemiBold"/>
@@ -29,7 +29,7 @@
                                         <ColumnDefinition Width="12"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Foreground="{StaticResource TextDim}" Text="{Binding TimeText}"/>
+                                    <TextBlock Grid.Column="0" Foreground="{DynamicResource TextDim}" Text="{Binding TimeText}"/>
                                     <TextBlock Grid.Column="2" TextTrimming="CharacterEllipsis">
                                         <Run Text="{Binding Category}"/>
                                         <Run Text=" · "/>
@@ -59,3 +59,4 @@
         </DockPanel>
     </Border>
 </UserControl>
+
