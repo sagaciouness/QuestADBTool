@@ -129,7 +129,7 @@ dotnet build QuestADBTool_Package.sln
 ### 发布
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\publish.ps1 -Configuration Release -Runtime win-x64 -VersionTag 0.5.3
+powershell -ExecutionPolicy Bypass -File .\publish.ps1 -Configuration Release -Runtime win-x64
 ```
 
 发布脚本会完成以下工作：
@@ -140,7 +140,7 @@ powershell -ExecutionPolicy Bypass -File .\publish.ps1 -Configuration Release -R
 
 默认输出：
 - `artifacts\publish\Release-win-x64\`
-- `artifacts\QuestADBTool_0.5.3.zip`
+- `artifacts\QuestADBTool.zip`
 
 ## 项目结构
 
