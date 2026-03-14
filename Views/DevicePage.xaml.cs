@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 using System.Windows;
 
@@ -19,6 +19,9 @@ public partial class DevicePage : UserControl
     public Button GuideButtonControl => GuideButton;
     public Button OpenLogButtonControl => OpenLogButton;
     public Button CheckUpdateButtonControl => CheckUpdateButton;
+    public Button RunDiagnosticsButtonControl => RunDiagnosticsButton;
+    public Button CopyDiagnosticsButtonControl => CopyDiagnosticsButton;
+    public TextBox DiagnosticsBoxControl => DiagnosticsBox;
 
     public ScrollViewer DeviceInfoScrollViewerControl => DeviceInfoScrollViewer;
     public Button DeviceInfoScrollLeftButtonControl => DeviceInfoScrollLeftButton;
