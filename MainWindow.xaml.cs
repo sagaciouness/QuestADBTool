@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -351,6 +351,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         WirePageEvents();
+        InitializeUsbOnlyExtensions();
         SwitchPage(AppPage.Device);
         SetNavRailVisualState(expanded: false);
         UpdateNavPinToggleVisual();
@@ -1221,6 +1222,7 @@ public partial class MainWindow : Window
         AppLaunchButton.IsEnabled = canOperate && hasSelection;
         AppUninstallButton.IsEnabled = canOperate && hasSelection;
         AppCopyPackageButton.IsEnabled = hasSelection;
+        UpdateExtendedAppActions(canOperate, hasSelection);
         AppCountText.Text = $"应用数：{_managedApps.Count}";
 
         if (!hasSelection)
@@ -2133,6 +2135,7 @@ public partial class MainWindow : Window
         if (RemoveSelectedButton != null) RemoveSelectedButton.IsEnabled = canEdit && hasSelected;
         if (StartQueueButton != null) StartQueueButton.IsEnabled = canRun && hasPending;
         if (InstallApkButton != null) InstallApkButton.IsEnabled = canEdit && ValidateApkPath(ApkPathBox.Text.Trim());
+        UpdateExtendedQueueActions(canEdit, hasAny, hasPending, hasFailed);
     }
 
     private void StartInstallProgress()

@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+using System.Windows.Controls;
 
 namespace QuestADBTool.Views;
 
@@ -20,6 +20,11 @@ public partial class AppManagePage : UserControl
     public ListBox AppListBoxControl => AppListBox;
     public TextBlock AppSelectedPackageTextControl => AppSelectedPackageText;
     public Button AppLaunchButtonControl => AppLaunchButton;
+    public Button AppForceStopButtonControl => AppForceStopButton;
     public Button AppUninstallButtonControl => AppUninstallButton;
+    public Button AppClearDataButtonControl => AppClearDataButton;
+    public Button AppExportApkButtonControl => AppExportApkButton;
+    public Button AppOpenSettingsButtonControl => AppOpenSettingsButton;
+    public Button AppReadPermissionsButtonControl => AppReadPermissionsButton;
     public Button AppCopyPackageButtonControl => AppCopyPackageButton;
 }

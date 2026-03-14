@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Shapes;
@@ -33,6 +33,9 @@ public partial class InstallPage : UserControl
     public TextBlock ApkInfoSizeTextControl => ApkInfoSizeText;
     public TextBlock ApkInfoPackageTextControl => ApkInfoPackageText;
     public TextBlock ApkInfoVersionTextControl => ApkInfoVersionText;
+    public TextBlock ApkInfoSdkTextControl => ApkInfoSdkText;
+    public TextBlock ApkInfoAbiTextControl => ApkInfoAbiText;
+    public TextBlock ApkInfoSignatureTextControl => ApkInfoSignatureText;
 
     public Expander AdvancedOptionsExpanderControl => AdvancedOptionsExpander;
     public CheckBox ReplaceInstallCheckBoxControl => ReplaceInstallCheckBox;
@@ -44,8 +47,11 @@ public partial class InstallPage : UserControl
 
     public Button AddQueueButtonControl => AddQueueButton;
     public Button StartQueueButtonControl => StartQueueButton;
+    public Button PauseQueueButtonControl => PauseQueueButton;
+    public Button StopQueueButtonControl => StopQueueButton;
     public Button ClearQueueButtonControl => ClearQueueButton;
     public Button RetryFailedButtonControl => RetryFailedButton;
+    public Button ExportQueueResultButtonControl => ExportQueueResultButton;
     public Button RemoveSelectedButtonControl => RemoveSelectedButton;
 
     public Border InstallBusyOverlayControl => InstallBusyOverlay;

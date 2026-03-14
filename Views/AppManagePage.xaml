@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="QuestADBTool.Views.AppManagePage"
+<UserControl x:Class="QuestADBTool.Views.AppManagePage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              UseLayoutRounding="True"
@@ -88,7 +88,12 @@
 
                         <WrapPanel Margin="0,12,0,0">
                             <Button x:Name="AppLaunchButton" Height="36" Content="启动应用" Style="{DynamicResource PrimaryButton}" Margin="0,0,8,8"/>
+                            <Button x:Name="AppForceStopButton" Height="36" Content="强制停止" Style="{DynamicResource FluentButton}" Margin="0,0,8,8"/>
                             <Button x:Name="AppUninstallButton" Height="36" Content="卸载应用" Style="{DynamicResource FluentButton}" Margin="0,0,8,8"/>
+                            <Button x:Name="AppClearDataButton" Height="36" Content="清除数据" Style="{DynamicResource FluentButton}" Margin="0,0,8,8"/>
+                            <Button x:Name="AppExportApkButton" Height="36" Content="导出APK" Style="{DynamicResource FluentButton}" Margin="0,0,8,8"/>
+                            <Button x:Name="AppOpenSettingsButton" Height="36" Content="应用详情" Style="{DynamicResource FluentButton}" Margin="0,0,8,8"/>
+                            <Button x:Name="AppReadPermissionsButton" Height="36" Content="查看权限" Style="{DynamicResource FluentButton}" Margin="0,0,8,8"/>
                             <Button x:Name="AppCopyPackageButton" Height="36" Content="复制包名" Style="{DynamicResource FluentButton}" Margin="0,0,0,8"/>
                         </WrapPanel>
 
@@ -101,4 +106,3 @@
         </Grid>
     </Border>
 </UserControl>
-
