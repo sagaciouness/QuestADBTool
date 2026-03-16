@@ -1,11 +1,11 @@
 {
-  "version": "0.5.3",
-  "title": "QTool v0.5.3",
-  "notes": "1) 新增连接诊断面板，可快速排查 USB 调试、offline 与未授权问题。\n2) 安装页新增 APK 预解析信息，显示包名、版本号、SDK、ABI 与签名摘要。\n3) 安装队列新增暂停后续、停止队列与导出结果。\n4) 应用管理新增强制停止、清除数据、导出 APK、打开详情与查看权限。\n5) 新增提示文案统一为中文，减少中英混杂。",
-  "published_at": "2026-03-15T18:00:00+08:00",
-  "downloads": {
-    "github_url": "https://github.com/sagaciouness/QuestADBTool/raw/refs/heads/main/QuestADBTool_0.5.3.zip",
-    "baidu_url": "",
-    "baidu_code": ""
-  }
+    "version":  "0.5.4",
+    "title":  "QTool v0.5.4",
+    "notes":  "1) 将 MainWindow 进一步拆分为设备、安装、应用、更新等模块，便于后续维护与扩展。`n2) 保持现有 USB 诊断、APK 解析、安装队列与应用管理能力不变，降低主窗口代码复杂度。",
+    "published_at":  "2026-03-16T20:00:00+08:00",
+    "downloads":  {
+                      "github_url":  "https://github.com/sagaciouness/QuestADBTool/raw/refs/heads/main/QuestADBTool_0.5.4.zip",
+                      "baidu_url":  "",
+                      "baidu_code":  ""
+                  }
 }
